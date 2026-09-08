@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Audio Converter (FLAC & WAV to MP3)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-8 font-sans">
+    <div class="max-w-2xl mx-auto bg-gray-800 p-8 rounded-lg shadow-xl">
+        <h1 class="text-3xl font-bold mb-2 text-blue-400">FLAC & WAV to MP3 320kbps</h1>
+        <p class="text-gray-400 text-sm mb-6">Converts both FLAC and WAV tracks to DJ-ready 320kbps MP3s.</p>
+        
+        <div class="space-y-4">
+            <!-- Input Folder -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Input Folder</label>
+                <div class="flex gap-2">
+                    <input type="text" id="inputDir" placeholder="e.g., C:\Users\DJ\Music\Unconverted" 
+                           class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
+                    <button onclick="browseFolder('inputDir')" 
+                            class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors">
+                        Browse...
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output Folder -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Output Folder</label>
+                <div class="flex gap-2">
+                    <input type="text" id="outputDir" placeholder="e.g., C:\Users\DJ\Music\MP3s_320" 
+                           class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
+                    <button onclick="browseFolder('outputDir')" 
+                            class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors">
+                        Browse...
+                    </button>
+                </div>
+            </div>
+
+            <!-- Create Folder Checkbox -->
+            <div class="flex items-center mt-2">
+                <input type="checkbox" id="createFolder" checked class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500">
+                <label for="createFolder" class="ml-2 text-sm select-none cursor-pointer">Create output folder if it doesn't exist</label>
+            </div>
+
+            <button id="startBtn" onclick="startConversion()" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition-colors mt-4">
+                Start Conversion
+            </button>
+        </div>
+
+        <!-- Progress Log -->
+        <div id="progressSection" class="mt-8 hidden">
+            <div class="flex justify-between text-sm mb-1">
+                <span id="progressText">Preparing...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-4 mb-4 overflow-hidden">
+                <div id="progressBar" class="bg-blue-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            
+            <div class="bg-gray-950 p-3 rounded h-48 overflow-y-auto font-mono text-sm border border-gray-700" id="logArea">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function browseFolder(inputId) {
+            try {
+                const response = await fetch('/browse');
+                const data = await response.json();
+                if (data.path) {
+                    document.getElementById(inputId).value = data.path;
+                }
+            } catch (error) {
+                console.error("Failed to open folder browser:", error);
+            }
+        }
+
+        function log(msg, color = 'text-gray-300') {
+            const logArea = document.getElementById('logArea');
+            logArea.innerHTML += `<div class="${color}">${msg}</div>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        async function startConversion() {
+            const inputDir = document.getElementById('inputDir').value;
+            const outputDir = document.getElementById('outputDir').value;
+            const createFolder = document.getElementById('createFolder').checked;
+            const startBtn = document.getElementById('startBtn');
+            const progressSection = document.getElementById('progressSection');
+            
+            if (!inputDir || !outputDir) {
+                alert("Please provide both input and output paths.");
+                return;
+            }
+
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            progressSection.classList.remove('hidden');
+            document.getElementById('logArea').innerHTML = '';
+            document.getElementById('progressBar').style.width = '0%';
+            log('Initiating conversion task...', 'text-blue-400');
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        input_dir: inputDir, 
+                        output_dir: outputDir, 
+                        create_folder: createFolder 
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop(); 
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.substring(6));
+                            handleStreamData(data);
+                        }
+                    }
+                }
+            } catch (error) {
+                log(`Connection Error: ${error.message}`, 'text-red-500');
+            } finally {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function handleStreamData(data) {
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressPercent = document.getElementById('progressPercent');
+
+            if (data.status === 'error') {
+                log(`ERROR: ${data.msg}`, 'text-red-500');
+            } else if (data.status === 'start') {
+                log(`Found ${data.total} audio files (FLAC/WAV). Starting...`, 'text-green-400');
+            } else if (data.status === 'progress') {
+                const percent = Math.round((data.current / data.total) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressPercent.innerText = `${percent}%`;
+                progressText.innerText = `Processing: ${data.file} (${data.current}/${data.total})`;
+            } else if (data.status === 'success') {
+                log(`✔ Converted: ${data.file}`, 'text-gray-400');
+            } else if (data.status === 'warning') {
+                log(`⚠ Failed: ${data.msg}`, 'text-yellow-500');
+            } else if (data.status === 'done') {
+                progressText.innerText = "Conversion Complete!";
+                progressBar.classList.replace('bg-blue-500', 'bg-green-500');
+                log('🎉 All files processed successfully!', 'text-green-400 font-bold mt-2');
+            }
+        }
+    </script>
+</body>
+</html>
