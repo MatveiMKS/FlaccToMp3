@@ -38,19 +38,19 @@ jobs:
           Copy-Item "ffmpeg-dl/$name/LICENSE" FFmpeg-LICENSE.txt
 
       - name: Build exe
-        run: pyinstaller --noconfirm --onefile --windowed --icon static/icon.ico --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
+        run: pyinstaller --noconfirm --onefile --windowed --icon static/icon.ico --name SoundConverter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
 
       - name: Smoke test
         shell: pwsh
         run: |
-          $app = Start-Process dist/MP3Converter.exe -PassThru
+          $app = Start-Process dist/SoundConverter.exe -PassThru
           try {
             $ok = $false
             foreach ($i in 1..30) {
               Start-Sleep 2
               try {
                 $page = Invoke-WebRequest http://127.0.0.1:5000/ -UseBasicParsing
-                if ($page.Content -match 'MP3 Converter') { $ok = $true; break }
+                if ($page.Content -match 'Sound Converter') { $ok = $true; break }
               } catch {}
             }
             if (-not $ok) { throw 'Packaged app did not serve the page' }
@@ -64,9 +64,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MP3Converter
+          name: SoundConverter
           path: |
-            dist/MP3Converter.exe
+            dist/SoundConverter.exe
             dist/FFmpeg-LICENSE.txt
 
   macos:
@@ -97,30 +97,30 @@ jobs:
           ./ffmpeg -hide_banner -encoders | grep libmp3lame
 
       - name: Build app
-        run: pyinstaller --noconfirm --windowed --icon static/icon.icns --name MP3Converter --osx-bundle-identifier com.mp3converter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
+        run: pyinstaller --noconfirm --windowed --icon static/icon.icns --name SoundConverter --osx-bundle-identifier com.soundconverter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
 
       - name: Smoke test
         run: |
           # The FFmpeg inside the bundle still runs after PyInstaller re-signed it
-          "$(find dist/MP3Converter.app -type f -name ffmpeg | head -n 1)" -version
-          PORT=5071 dist/MP3Converter.app/Contents/MacOS/MP3Converter &
+          "$(find dist/SoundConverter.app -type f -name ffmpeg | head -n 1)" -version
+          PORT=5071 dist/SoundConverter.app/Contents/MacOS/SoundConverter &
           app=$!
           ok=
           for i in $(seq 30); do
             sleep 2
-            if curl -fs http://127.0.0.1:5071/ | grep -q 'MP3 Converter'; then ok=1; break; fi
+            if curl -fs http://127.0.0.1:5071/ | grep -q 'Sound Converter'; then ok=1; break; fi
           done
           kill $app || true
           [ -n "$ok" ] || { echo 'Packaged app did not serve the page'; exit 1; }
 
       - name: Zip app
         # ditto keeps the symlinks and the signature of the bundle intact
-        run: ditto -c -k --sequesterRsrc --keepParent dist/MP3Converter.app dist/MP3Converter-macOS-${{ matrix.arch }}.zip
+        run: ditto -c -k --sequesterRsrc --keepParent dist/SoundConverter.app dist/SoundConverter-macOS-${{ matrix.arch }}.zip
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MP3Converter-macOS-${{ matrix.arch }}
-          path: dist/MP3Converter-macOS-${{ matrix.arch }}.zip
+          name: SoundConverter-macOS-${{ matrix.arch }}
+          path: dist/SoundConverter-macOS-${{ matrix.arch }}.zip
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -138,9 +138,9 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           cat > notes.md <<EOF
-          **Windows**: download **MP3Converter.exe** and double-click it. Windows may show a SmartScreen warning because the app is unsigned: click **More info**, then **Run anyway**.
+          **Windows**: download **SoundConverter.exe** and double-click it. Windows may show a SmartScreen warning because the app is unsigned: click **More info**, then **Run anyway**.
 
-          **macOS**: download **MP3Converter-macOS-arm64.zip** (Apple Silicon: M1 and later) or **MP3Converter-macOS-x86_64.zip** (Intel), unzip it and open **MP3Converter**. The app is unsigned, so macOS blocks the first launch: open **System Settings > Privacy & Security**, scroll down and click **Open Anyway**.
+          **macOS**: download **SoundConverter-macOS-arm64.zip** (Apple Silicon: M1 and later) or **SoundConverter-macOS-x86_64.zip** (Intel), unzip it and open **SoundConverter**. The app is unsigned, so macOS blocks the first launch: open **System Settings > Privacy & Security**, scroll down and click **Open Anyway**.
 
           Close the window to quit.
 

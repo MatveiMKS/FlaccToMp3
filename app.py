@@ -13,7 +13,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 import sys
 import webbrowser
-from tagger import tag_mp3, describe_tag_result
+from tagger import tag_file, describe_tag_result, copy_tags_to_wav, bits_per_sample, TAGGABLE_EXTENSIONS
 
 # When packaged with PyInstaller, bundled files are unpacked to sys._MEIPASS
 FROZEN = getattr(sys, 'frozen', False)
@@ -33,7 +33,7 @@ FFMPEG = BUNDLED_FFMPEG if os.path.isfile(BUNDLED_FFMPEG) else shutil.which('ffm
 # Keeps FFmpeg from flashing a console window when the app itself has none
 NO_WINDOW = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 
-APP_NAME = 'MP3 Converter'
+APP_NAME = 'Sound Converter'
 # Window and taskbar icon; the packaged exe and app bundle embed their own (see the build commands)
 ICON = os.path.join(BASE_DIR, 'static', 'icon.ico') if WINDOWS else None
 # macOS keeps port 5000 for its AirPlay Receiver
@@ -44,13 +44,13 @@ app = Flask(__name__, template_folder=os.path.join(BASE_DIR, 'templates'), stati
 # The native window, when the app runs in one (None in --browser mode)
 window = None
 
-# Everything FFmpeg can decode that is worth turning into an MP3
+# Everything FFmpeg can decode that is worth turning into an MP3 or WAV
 AUDIO_EXTENSIONS = (
     '.flac', '.wav', '.aiff', '.aif', '.aifc', '.m4a', '.m4b', '.aac', '.alac', '.ogg', '.oga', '.opus',
     '.wma', '.ape', '.wv', '.tta', '.mka', '.mpc', '.ac3', '.dts', '.caf', '.au', '.amr', '.mp2',
     '.dsf', '.dff', '.w64', '.spx', '.tak', '.3gp'
 )
-MP3_EXTENSIONS = ('.mp3',)
+OUTPUT_FORMATS = ('mp3', 'wav')
 
 class Job:
     """One running conversion or tagging run, so it can be cancelled from another request."""
@@ -89,7 +89,7 @@ def sse(**event):
 
 @app.route('/')
 def index():
-    return render_template('index.html', extensions=AUDIO_EXTENSIONS + MP3_EXTENSIONS + ('.zip',))
+    return render_template('index.html', extensions=AUDIO_EXTENSIONS + TAGGABLE_EXTENSIONS + ('.zip',))
 
 def mac_dialog(patterns):
     """Native macOS picker for browser mode: tkinter only works on the main thread there."""
@@ -108,7 +108,7 @@ def browse():
     file_types = {
         # pywebview only accepts letters, digits and spaces in the description
         'file': ('Audio and ZIP', ['*.zip'] + ['*' + ext for ext in AUDIO_EXTENSIONS]),
-        'mp3': ('MP3', ['*.mp3'])
+        'tag': ('MP3 and WAV', ['*' + ext for ext in TAGGABLE_EXTENSIONS])
     }.get(kind)
 
     if window:
@@ -263,6 +263,7 @@ def convert():
     output_dir = data.get('output_dir', '').strip()
     create_folder = data.get('create_folder', False)
     tag = data.get('tag', False)
+    fmt = data.get('format') if data.get('format') in OUTPUT_FORMATS else 'mp3'
     # Retry: only these source ids are converted again
     only = data.get('only')
 
@@ -276,13 +277,13 @@ def convert():
 
         # Normalize & Create Output Directory
         if create_folder:
-            # "<input name>_mp3", inside the chosen output folder (default: next to the input)
+            # "<input name>_mp3" or "_wav", inside the chosen output folder (default: next to the input)
             norm_input_dir = os.path.normpath(os.path.abspath(input_dir))
             parent_dir = output_dir or os.path.dirname(norm_input_dir)
             input_name = os.path.basename(norm_input_dir)
             if is_file:
                 input_name = os.path.splitext(input_name)[0]
-            norm_output_dir = os.path.normpath(os.path.join(parent_dir, input_name + '_mp3'))
+            norm_output_dir = os.path.normpath(os.path.join(parent_dir, input_name + '_' + fmt))
         elif not output_dir:
             yield sse(status='error', code='output_missing', msg='Please specify an output directory.')
             return
@@ -323,7 +324,7 @@ def convert():
             yield sse(status='error', code='ffmpeg_missing', msg='FFmpeg not found. Ensure it is installed and in your PATH.')
             return
 
-        # Files that would produce the same MP3 (same name in two folders, or song.flac + song.wav) get a number
+        # Files that would produce the same output (same name in two folders, or song.flac + song.wav) get a number
         stems = [os.path.splitext(os.path.basename(source_id))[0] for _, source_id in sources]
         items = [(path, source_id, stem, out_stem) for (path, source_id), stem, out_stem in zip(sources, stems, unique_names(stems))]
         if only is not None:
@@ -337,12 +338,21 @@ def convert():
         def convert_one(item):
             in_path, source_id, stem, out_stem = item
             filename = os.path.basename(in_path)
-            out_name = out_stem + ".mp3"
+            out_name = out_stem + '.' + fmt
             out_path = os.path.join(norm_output_dir, out_name)
+
+            # A WAV converted into its own folder would be overwritten while it is being read
+            if os.path.normcase(os.path.abspath(out_path)) == os.path.normcase(os.path.abspath(in_path)):
+                return {'status': 'warning', 'code': 'same_file', 'file': filename, 'id': source_id,
+                        'msg': f'Skipped {filename}: the output would overwrite the source'}
 
             def command(with_art):
                 # Tags live on the container for most formats and on the audio stream for Ogg/Opus: take both
                 cmd = [FFMPEG, '-hide_banner', '-loglevel', 'error', '-y', '-i', in_path, '-map', '0:a:0']
+                if fmt == 'wav':
+                    # Keep 24-bit sources in 24 bits; everything else (CD audio, lossy formats) fits in 16
+                    pcm = 'pcm_s24le' if bits_per_sample(in_path) > 16 else 'pcm_s16le'
+                    return cmd + ['-c:a', pcm, '-map_metadata', '0', '-map_metadata', '0:s:a:0', out_path]
                 if with_art:
                     cmd.extend(['-map', '0:v?', '-c:v', 'copy'])
                 return cmd + ['-ab', '320k', '-map_metadata', '0', '-map_metadata', '0:s:a:0', '-id3v2_version', '3', out_path]
@@ -350,13 +360,20 @@ def convert():
             try:
                 # Keep embedded cover art when the MP3 can hold it, otherwise convert the audio alone
                 code, stderr = job.run(command(True))
-                if code != 0 and not job.cancelled.is_set():
+                if code != 0 and fmt == 'mp3' and not job.cancelled.is_set():
                     code, stderr = job.run(command(False))
             except OSError as e:
                 code, stderr = 1, str(e)
 
+            if code == 0 and fmt == 'wav':
+                # FFmpeg only writes basic tags into a WAV, and no cover art: add a full ID3 chunk
+                try:
+                    copy_tags_to_wav(in_path, out_path)
+                except Exception:
+                    pass
+
             if code != 0:
-                # Don't leave a truncated MP3 behind
+                # Don't leave a truncated file behind
                 try:
                     os.remove(out_path)
                 except OSError:
@@ -373,7 +390,7 @@ def convert():
             if tag and not job.cancelled.is_set():
                 try:
                     with tag_slots:
-                        event['tag'] = tag_mp3(out_path, stem)
+                        event['tag'] = tag_file(out_path, stem)
                     event['tag_msg'] = describe_tag_result(event['tag'])
                 except Exception as e:
                     event['tag_error'] = str(e)
@@ -388,20 +405,20 @@ def convert():
 
 @app.route('/tag', methods=['POST'])
 def tag():
-    """Tags existing MP3s in place: a folder of them, or a single file."""
+    """Tags existing MP3s and WAVs in place: a folder of them, or a single file."""
     data = request.json
     input_dir = data.get('input_dir', '').strip()
     only = data.get('only')
 
     def run(job, temp_dirs):
-        sources = find_sources(input_dir, MP3_EXTENSIONS, temp_dirs, allow_zip=False) if input_dir else None
+        sources = find_sources(input_dir, TAGGABLE_EXTENSIONS, temp_dirs, allow_zip=False) if input_dir else None
         if sources is None:
-            yield sse(status='error', code='tag_input_invalid', msg='Input must be an existing folder or MP3 file.')
+            yield sse(status='error', code='tag_input_invalid', msg='Input must be an existing folder, MP3 or WAV file.')
             return
         if only is not None:
             sources = [source for source in sources if source[1] in only]
         if not sources:
-            yield sse(status='error', code='no_mp3', msg='No MP3 files found in the input.')
+            yield sse(status='error', code='no_mp3', msg='No MP3 or WAV files found in the input.')
             return
 
         output_dir = input_dir if os.path.isdir(input_dir) else os.path.dirname(input_dir)
@@ -411,7 +428,7 @@ def tag():
             path, source_id = source
             event = {'status': 'success', 'file': source_id, 'id': source_id}
             try:
-                event['tag'] = tag_mp3(path)
+                event['tag'] = tag_file(path)
                 event['tag_msg'] = describe_tag_result(event['tag'])
             except Exception as e:
                 event['tag_error'] = str(e)
@@ -494,6 +511,7 @@ def main():
             data_dir = os.path.expanduser('~/Library/Application Support')
         else:
             data_dir = os.environ.get('LOCALAPPDATA') or tempfile.gettempdir()
+        # Named after the app's former name, so settings saved before the rename are kept
         storage = os.path.join(data_dir, 'MP3Converter')
         webview.start(gui='edgechromium' if WINDOWS else None, private_mode=False, storage_path=storage, icon=ICON)
     except Exception:

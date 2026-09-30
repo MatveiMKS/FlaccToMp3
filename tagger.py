@@ -1,3 +1,4 @@
+import base64
 import os
 import re
 import unicodedata
@@ -5,8 +6,21 @@ from difflib import SequenceMatcher
 
 import requests
 import yt_dlp
+from mutagen import File as MutagenFile
+from mutagen.flac import Picture
 from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, TPE1, TCON, APIC, error
+from mutagen.mp4 import MP4Cover
+from mutagen.wave import WAVE
+from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TCON, TDRC, TRCK, TPOS, TBPM, APIC
+
+# Files the SoundCloud tagger can write to: both keep their tags in ID3
+TAGGABLE_EXTENSIONS = ('.mp3', '.wav')
+
+# Tags copied into a converted WAV, by their name in mutagen's format-independent ("easy") interface
+EASY_TO_ID3 = {
+    'title': TIT2, 'artist': TPE1, 'album': TALB, 'albumartist': TPE2, 'genre': TCON,
+    'date': TDRC, 'tracknumber': TRCK, 'discnumber': TPOS, 'bpm': TBPM
+}
 
 # How many SoundCloud results are compared against the file
 SEARCH_RESULTS = 5
@@ -119,8 +133,60 @@ def search_soundcloud(query, artist, title):
         'artwork_url': track.get('thumbnail') or (thumbnails[-1].get('url') if thumbnails else None)
     }
 
-def tag_mp3(filepath, name=None):
-    """Fills in missing Artist, Genre and Artwork on one MP3 from SoundCloud.
+def open_id3(filepath):
+    """Opens an MP3 or WAV with an ID3 tag, creating an empty one if it has none."""
+    audio = WAVE(filepath) if filepath.lower().endswith('.wav') else MP3(filepath, ID3=ID3)
+    if audio.tags is None:
+        audio.add_tags()
+    return audio
+
+def source_pictures(source):
+    """(mime, picture type, data) of the cover art embedded in a FLAC, Ogg/Opus or MP4 file."""
+    if getattr(source, 'pictures', None):
+        return [(p.mime, p.type, p.data) for p in source.pictures]
+    tags = source.tags
+    if tags is None:
+        return []
+    if 'covr' in tags:
+        return [('image/png' if c.imageformat == MP4Cover.FORMAT_PNG else 'image/jpeg', 3, bytes(c)) for c in tags['covr']]
+    if 'metadata_block_picture' in tags:
+        pictures = [Picture(base64.b64decode(value)) for value in tags['metadata_block_picture']]
+        return [(p.mime, p.type, p.data) for p in pictures]
+    return []
+
+def copy_tags_to_wav(src, wav_path):
+    """Copies the tags and cover art of any audio file into a WAV's ID3 chunk, which is what DJ software reads."""
+    source = MutagenFile(src)
+    if source is None or source.tags is None:
+        return
+    wav = open_id3(wav_path)
+
+    if isinstance(source.tags, ID3):
+        # WAV, AIFF, DSF...: already ID3, copy every frame as is
+        for frame in source.tags.values():
+            wav.tags.add(frame)
+    else:
+        easy = MutagenFile(src, easy=True)
+        for key, frame in EASY_TO_ID3.items():
+            try:
+                values = easy.tags[key] if easy and easy.tags is not None else None
+            except (KeyError, ValueError):
+                values = None
+            if values:
+                wav.tags.add(frame(encoding=3, text=[str(v) for v in values]))
+        for mime, kind, data in source_pictures(source):
+            wav.tags.add(APIC(encoding=3, mime=mime, type=kind, desc='Cover' if kind == 3 else '', data=data))
+    wav.save()
+
+def bits_per_sample(path):
+    """Bit depth of a lossless file, or 0 when unknown (lossy formats have none)."""
+    try:
+        return getattr(MutagenFile(path).info, 'bits_per_sample', 0) or 0
+    except Exception:
+        return 0
+
+def tag_file(filepath, name=None):
+    """Fills in missing Artist, Genre and Artwork on one MP3 or WAV from SoundCloud.
 
     name: track name to search for when the file has no title tag (default: the file name).
 
@@ -131,12 +197,7 @@ def tag_mp3(filepath, name=None):
     if name is None:
         name = os.path.splitext(os.path.basename(filepath))[0]
 
-    # Load MP3 file and initialize ID3 tags if missing
-    audio = MP3(filepath, ID3=ID3)
-    try:
-        audio.add_tags()
-    except error:
-        pass # Tags already exist
+    audio = open_id3(filepath)
 
     def text_of(frame_id):
         return str(audio.tags[frame_id]).strip() if frame_id in audio.tags else ''
@@ -193,7 +254,7 @@ def tag_mp3(filepath, name=None):
     return {'code': 'nothing', 'added': [], 'match': sc_data['match']}
 
 def describe_tag_result(result):
-    """English one-line summary of a tag_mp3() result."""
+    """English one-line summary of a tag_file() result."""
     if result['code'] == 'added':
         return "added " + ", ".join(
             field.capitalize() + (f" ({value})" if value else "") for field, value in result['added']
@@ -205,19 +266,19 @@ def describe_tag_result(result):
         'nothing': "no missing data could be found",
     }[result['code']]
 
-def process_mp3_files(folder_path):
-    """Iterates through MP3s and updates missing metadata."""
+def process_folder(folder_path):
+    """Iterates through MP3s and WAVs and updates missing metadata."""
     if not folder_path:
         print("No folder selected. Exiting.")
         return
 
     for filename in os.listdir(folder_path):
-        if not filename.lower().endswith('.mp3'):
+        if not filename.lower().endswith(TAGGABLE_EXTENSIONS):
             continue
 
         print(f"\nProcessing: {filename}")
         try:
-            print(f"  [*] {describe_tag_result(tag_mp3(os.path.join(folder_path, filename)))}")
+            print(f"  [*] {describe_tag_result(tag_file(os.path.join(folder_path, filename)))}")
         except Exception as e:
             print(f"  [!] Failed: {e}")
 
@@ -227,8 +288,8 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.withdraw() # Hide the main tkinter window
-    target_folder = filedialog.askdirectory(title="Select Folder with MP3s")
+    target_folder = filedialog.askdirectory(title="Select Folder with MP3s or WAVs")
     root.destroy()
 
-    process_mp3_files(target_folder)
+    process_folder(target_folder)
     print("\nDone!")

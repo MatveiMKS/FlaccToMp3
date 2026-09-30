@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convertisseur MP3</title>
+    <title>Convertisseur audio</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icon.svg') }}">
     <link rel="icon" sizes="any" href="{{ url_for('static', filename='icon.ico') }}">
     <!-- Bundled copy of Tailwind, so the page is styled without an internet connection -->
@@ -91,7 +91,7 @@
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                         <span data-i18n="folder"></span>
                     </button>
-                    <button onclick="browseFolder('inputDir', mode === 'tag' ? 'mp3' : 'file')"
+                    <button onclick="browseFolder('inputDir', mode === 'tag' ? 'tag' : 'file')"
                             class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"/></svg>
                         <span data-i18n="file"></span>
@@ -113,6 +113,16 @@
                     </button>
                 </div>
                 <p id="outputPreview" class="text-xs font-medium text-indigo-700 dark:text-indigo-300 mt-2 break-all hidden"></p>
+            </div>
+
+            <!-- Output format -->
+            <div data-convert-only>
+                <span id="formatLabel" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2" data-i18n="formatLabel"></span>
+                <div role="radiogroup" aria-labelledby="formatLabel" class="grid grid-cols-2 p-1 gap-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-slate-50 dark:bg-black text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                    <button role="radio" data-format="mp3" onclick="setFormat('mp3')" class="py-2 rounded-lg transition-colors disabled:cursor-not-allowed">MP3</button>
+                    <button role="radio" data-format="wav" onclick="setFormat('wav')" class="py-2 rounded-lg transition-colors disabled:cursor-not-allowed">WAV</button>
+                </div>
+                <p id="formatDesc" class="text-xs text-zinc-600 dark:text-zinc-300 mt-2"></p>
             </div>
 
             <!-- Options -->
@@ -189,16 +199,16 @@
 
         const I18N = {
             fr: {
-                pageTitle: 'Convertisseur MP3',
-                heading: 'Convertisseur <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">MP3</span>',
-                subtitle: 'Convertissez vos fichiers audio (FLAC, WAV, M4A, OGG…) en MP3 320 kbps.',
+                pageTitle: 'Convertisseur audio',
+                heading: 'Convertisseur <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">audio</span>',
+                subtitle: 'Convertissez vos fichiers audio (FLAC, WAV, M4A, OGG…) en MP3 320 kbps ou en WAV.',
                 themeTitle: 'Basculer entre le mode clair et le mode sombre',
                 langTitle: 'Langue',
                 modeConvert: 'Convertir',
                 modeTag: 'Taguer seulement',
                 source: 'Source',
                 sourcePlaceholder: 'Dossier, fichier ZIP ou fichier audio',
-                sourcePlaceholderTag: 'Dossier de MP3 ou fichier MP3',
+                sourcePlaceholderTag: 'Dossier de MP3/WAV, ou fichier MP3 ou WAV',
                 folder: 'Dossier',
                 file: 'Fichier',
                 dropHint: 'Vous pouvez aussi glisser-déposer un dossier ou un fichier dans la fenêtre.',
@@ -210,7 +220,10 @@
                 browse: 'Parcourir',
                 savingTo: p => `Enregistrement dans ${p.path}`,
                 createTitle: 'Créer un nouveau dossier',
-                createDesc: 'Porte le nom de la source suivi de <span class="font-mono">_mp3</span>. Créé dans la destination, ou à côté de la source si aucune destination n\'est indiquée.',
+                formatLabel: 'Format de sortie',
+                formatDesc_mp3: 'MP3 320 kbps : fichiers légers, lisibles partout.',
+                formatDesc_wav: 'WAV sans perte, en 16 ou 24 bits selon la source. Tags et pochette conservés.',
+                createDesc: () => `Porte le nom de la source suivi de <span class="font-mono">_${format}</span>. Créé dans la destination, ou à côté de la source si aucune destination n'est indiquée.`,
                 tagTitle: 'Taguer depuis SoundCloud',
                 tagDesc: 'Complète l\'artiste, le genre et la pochette manquants à partir du titre ou du nom du fichier.',
                 convert: 'Convertir',
@@ -220,7 +233,7 @@
                 cancel: 'Annuler',
                 cancelling: 'Annulation…',
                 needSource: 'Choisissez un dossier source, un fichier ZIP ou un fichier audio.',
-                needSourceTag: 'Choisissez un dossier de MP3 ou un fichier MP3.',
+                needSourceTag: 'Choisissez un dossier de MP3/WAV, ou un fichier MP3 ou WAV.',
                 needDest: 'Choisissez une destination, ou activez « Créer un nouveau dossier ».',
                 starting: 'Démarrage…',
                 stopped: 'Arrêté',
@@ -232,6 +245,7 @@
                 converted: p => `✓ ${p.file}` + (p.renamed ? ` → ${p.renamed}` : ''),
                 convert_failed: p => `✗ Échec de la conversion de ${p.file}` + (p.detail ? ` : ${p.detail}` : ''),
                 failed: p => `✗ Échec : ${p.detail}`,
+                same_file: p => `✗ ${p.file} ignoré : le fichier converti écraserait la source`,
                 cancelledLine: 'Annulé par l\'utilisateur.',
                 tagLine: p => `   Tags : ${p.text}`,
                 tagFailed: p => `   Échec du tag : ${p.detail}`,
@@ -252,27 +266,27 @@
                 connection_lost: p => `Connexion à l'application perdue : ${p.detail}`,
                 extracting: 'Extraction de l\'archive ZIP…',
                 input_invalid: 'La source doit être un dossier, un fichier ZIP ou un fichier audio existant.',
-                tag_input_invalid: 'La source doit être un dossier ou un fichier MP3 existant.',
+                tag_input_invalid: 'La source doit être un dossier, un fichier MP3 ou un fichier WAV existant.',
                 output_missing: 'Veuillez indiquer un dossier de sortie.',
                 output_create_failed: p => `Impossible de créer le dossier de sortie : ${p.detail}`,
                 output_not_found: 'Le dossier de sortie n\'existe pas.',
                 output_is_file: 'Le chemin de sortie est un fichier, pas un dossier.',
                 zip_failed: p => `Impossible de lire la source : ${p.detail}`,
                 no_audio: 'Aucun fichier audio trouvé dans la source.',
-                no_mp3: 'Aucun fichier MP3 trouvé dans la source.',
+                no_mp3: 'Aucun fichier MP3 ou WAV trouvé dans la source.',
                 ffmpeg_missing: 'FFmpeg est introuvable. Vérifiez qu\'il est installé et présent dans le PATH.'
             },
             en: {
-                pageTitle: 'MP3 Converter',
-                heading: 'MP3 <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">Converter</span>',
-                subtitle: 'Convert audio files (FLAC, WAV, M4A, OGG…) to 320 kbps MP3.',
+                pageTitle: 'Sound Converter',
+                heading: 'Sound <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">Converter</span>',
+                subtitle: 'Convert audio files (FLAC, WAV, M4A, OGG…) to 320 kbps MP3 or to WAV.',
                 themeTitle: 'Switch between light and dark mode',
                 langTitle: 'Language',
                 modeConvert: 'Convert',
                 modeTag: 'Tag only',
                 source: 'Source',
                 sourcePlaceholder: 'Folder, ZIP file or audio file',
-                sourcePlaceholderTag: 'Folder of MP3s or MP3 file',
+                sourcePlaceholderTag: 'Folder of MP3s/WAVs, or an MP3 or WAV file',
                 folder: 'Folder',
                 file: 'File',
                 dropHint: 'You can also drag and drop a folder or file onto the window.',
@@ -284,7 +298,10 @@
                 browse: 'Browse',
                 savingTo: p => `Saving to ${p.path}`,
                 createTitle: 'Create a new folder',
-                createDesc: 'Named after the source with <span class="font-mono">_mp3</span> added. Placed in the destination, or next to the source if no destination is set.',
+                formatLabel: 'Output format',
+                formatDesc_mp3: '320 kbps MP3: small files that play anywhere.',
+                formatDesc_wav: 'Lossless WAV, 16 or 24 bits depending on the source. Tags and artwork are kept.',
+                createDesc: () => `Named after the source with <span class="font-mono">_${format}</span> added. Placed in the destination, or next to the source if no destination is set.`,
                 tagTitle: 'Tag from SoundCloud',
                 tagDesc: 'Fills in missing artist, genre and artwork using the title or file name.',
                 convert: 'Convert',
@@ -294,7 +311,7 @@
                 cancel: 'Cancel',
                 cancelling: 'Cancelling…',
                 needSource: 'Choose a source folder, ZIP file or audio file.',
-                needSourceTag: 'Choose a folder of MP3s or an MP3 file.',
+                needSourceTag: 'Choose a folder of MP3s/WAVs, or an MP3 or WAV file.',
                 needDest: 'Choose a destination, or turn on "Create a new folder".',
                 starting: 'Starting…',
                 stopped: 'Stopped',
@@ -306,6 +323,7 @@
                 converted: p => `✓ ${p.file}` + (p.renamed ? ` → ${p.renamed}` : ''),
                 convert_failed: p => `✗ Failed to convert ${p.file}` + (p.detail ? `: ${p.detail}` : ''),
                 failed: p => `✗ Failed: ${p.detail}`,
+                same_file: p => `✗ Skipped ${p.file}: the converted file would overwrite the source`,
                 cancelledLine: 'Cancelled by the user.',
                 tagLine: p => `   Tags: ${p.text}`,
                 tagFailed: p => `   Tagging failed: ${p.detail}`,
@@ -326,14 +344,14 @@
                 connection_lost: p => `Lost connection to the app: ${p.detail}`,
                 extracting: 'Extracting ZIP archive…',
                 input_invalid: 'Source must be an existing folder, ZIP file or audio file.',
-                tag_input_invalid: 'Source must be an existing folder or MP3 file.',
+                tag_input_invalid: 'Source must be an existing folder, MP3 file or WAV file.',
                 output_missing: 'Please specify an output folder.',
                 output_create_failed: p => `Failed to create output folder: ${p.detail}`,
                 output_not_found: 'Output folder does not exist.',
                 output_is_file: 'Output path is a file, not a folder.',
                 zip_failed: p => `Failed to read the source: ${p.detail}`,
                 no_audio: 'No audio files found in the source.',
-                no_mp3: 'No MP3 files found in the source.',
+                no_mp3: 'No MP3 or WAV files found in the source.',
                 ffmpeg_missing: 'FFmpeg not found. Ensure it is installed and in your PATH.'
             }
         };
@@ -348,8 +366,11 @@
             return typeof entry === 'function' ? entry(params) : entry;
         }
 
-        // 'convert' or 'tag' (tag existing MP3s without converting)
+        // 'convert' or 'tag' (tag existing MP3s and WAVs without converting)
         let mode = 'convert';
+        // Output format of conversions, 'mp3' or 'wav', remembered like the language
+        let format = 'mp3';
+        try { if (localStorage.getItem('format') === 'wav') format = 'wav'; } catch (e) {}
         // Everything shown after page load is kept as a key + params so it can be re-rendered on language change
         let stopped = false;
         let running = false;
@@ -383,7 +404,8 @@
         }
 
         function setActive(btn, active) {
-            btn.setAttribute(btn.getAttribute('role') === 'tab' ? 'aria-selected' : 'aria-pressed', active);
+            const state = { tab: 'aria-selected', radio: 'aria-checked' }[btn.getAttribute('role')] || 'aria-pressed';
+            btn.setAttribute(state, active);
             btn.classList.toggle('bg-zinc-900', active);
             btn.classList.toggle('text-white', active);
             btn.classList.toggle('dark:bg-white', active);
@@ -397,12 +419,25 @@
             applyMode();
         }
 
+        function setFormat(newFormat) {
+            if (running) return;
+            format = newFormat;
+            try { localStorage.setItem('format', format); } catch (e) {}
+            // The folder name in the option descriptions depends on the format
+            applyLang();
+        }
+
         function applyMode() {
             const tagMode = mode === 'tag';
             document.querySelectorAll('[data-mode]').forEach(btn => {
                 setActive(btn, btn.dataset.mode === mode);
                 btn.disabled = running;
             });
+            document.querySelectorAll('[data-format]').forEach(btn => {
+                setActive(btn, btn.dataset.format === format);
+                btn.disabled = running;
+            });
+            document.getElementById('formatDesc').textContent = t('formatDesc_' + format);
             document.querySelectorAll('[data-convert-only]').forEach(el => el.classList.toggle('hidden', tagMode));
             document.getElementById('inputDir').placeholder = t(tagMode ? 'sourcePlaceholderTag' : 'sourcePlaceholder');
             const startBtn = document.getElementById('startBtn');
@@ -433,7 +468,7 @@
             }
         }
 
-        // When auto-creating, preview where "<source name>_mp3" will end up
+        // When auto-creating, preview where "<source name>_mp3" (or _wav) will end up
         function syncOutputDir() {
             const auto = document.getElementById('createFolder').checked;
             const preview = document.getElementById('outputPreview');
@@ -444,8 +479,8 @@
             document.getElementById('outputDir').placeholder = t(auto ? 'destPlaceholderAuto' : 'destPlaceholder');
             preview.classList.toggle('hidden', !auto || !inputDir);
             if (auto && inputDir) {
-                const name = inputDir.split(/[\\/]/).pop() + '_mp3';
-                preview.innerText = t('savingTo', { path: outputDir ? outputDir + '\\' + name : inputDir + '_mp3' });
+                const name = inputDir.split(/[\\/]/).pop() + '_' + format;
+                preview.innerText = t('savingTo', { path: outputDir ? outputDir + '\\' + name : inputDir + '_' + format });
             }
         }
         document.getElementById('inputDir').addEventListener('input', syncOutputDir);
@@ -592,6 +627,7 @@
                     input_dir: inputDir,
                     output_dir: outputDir,
                     create_folder: createFolder,
+                    format,
                     tag: document.getElementById('tagFiles').checked
                 };
             }
