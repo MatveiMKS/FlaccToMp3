@@ -9,9 +9,19 @@ Une petite application Windows qui convertit les fichiers audio (FLAC, WAV, M4A,
 
 Il n'y a rien à installer. FFmpeg est inclus dans le `.exe`.
 
+### Avertissement de sécurité
+
+Le `.exe` n'est pas signé numériquement : un certificat de signature est payant, et ce projet n'en a pas. Windows et votre navigateur ne peuvent donc pas vérifier son éditeur et le signaleront comme potentiellement dangereux :
+
+- Le navigateur peut bloquer le téléchargement ou afficher « Ce fichier n'est pas couramment téléchargé ». Choisissez **Conserver** (parfois sous **…** ou **Afficher plus**).
+- Au premier lancement, Windows SmartScreen affiche « Windows a protégé votre ordinateur ». Cliquez sur **Informations complémentaires**, puis sur **Exécuter quand même**.
+- Certains antivirus peuvent aussi signaler le fichier, comme ils le font souvent pour les programmes Python empaquetés avec PyInstaller.
+
+Si vous préférez ne pas lancer un exécutable non signé, le code source est dans ce dépôt et vous pouvez [lancer l'application depuis les sources](#lancer-depuis-les-sources). Le `.exe` de chaque version est généré par GitHub Actions à partir de ce même code.
+
 ## Utilisation
 
-1. Double-cliquez sur `MP3Converter.exe`. Après quelques secondes, la fenêtre de l'application s'ouvre.
+1. Double-cliquez sur `MP3Converter.exe` (au premier lancement, voir l'[avertissement de sécurité](#avertissement-de-sécurité)). Après quelques secondes, la fenêtre de l'application s'ouvre.
 2. Choisissez une **Source** : cliquez sur **Dossier** pour sélectionner un dossier de fichiers audio, ou sur **Fichier** pour sélectionner une archive ZIP ou un seul fichier audio. Vous pouvez aussi coller un chemin, ou glisser-déposer le dossier ou le fichier dans la fenêtre.
 3. Choisissez un dossier de **Destination**, ou activez **Créer un nouveau dossier** (voir ci-dessous).
 4. Cliquez sur **Convertir**. La progression et un journal fichier par fichier s'affichent sous le formulaire. **Annuler** arrête la conversion en cours ; les fichiers déjà convertis sont conservés.
@@ -19,8 +29,6 @@ Il n'y a rien à installer. FFmpeg est inclus dans le `.exe`.
 6. Pour quitter, fermez la fenêtre.
 
 L'onglet **Taguer seulement** complète les tags de MP3 existants (un dossier ou un seul fichier) sans rien convertir.
-
-Windows peut afficher un avertissement SmartScreen au premier lancement, car l'application n'est pas signée. Cliquez sur **Informations complémentaires**, puis sur **Exécuter quand même**.
 
 ### Options
 
