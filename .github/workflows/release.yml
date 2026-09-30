@@ -1,0 +1,77 @@
+name: Build Windows exe
+
+on:
+  push:
+    tags: ['v*']
+  # Manual run: builds the exe as a downloadable artifact, without creating a release
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FFMPEG_VERSION: '8.1.2'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Download FFmpeg (essentials build)
+        shell: pwsh
+        run: |
+          $name = "ffmpeg-$env:FFMPEG_VERSION-essentials_build"
+          Invoke-WebRequest "https://github.com/GyanD/codexffmpeg/releases/download/$env:FFMPEG_VERSION/$name.zip" -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg-dl
+          Copy-Item "ffmpeg-dl/$name/bin/ffmpeg.exe" ffmpeg.exe
+          Copy-Item "ffmpeg-dl/$name/LICENSE" FFmpeg-LICENSE.txt
+
+      - name: Build exe
+        run: pyinstaller --noconfirm --onefile --name MP3Converter --add-data "templates;templates" --add-binary "ffmpeg.exe;." app.py
+
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $app = Start-Process dist/MP3Converter.exe -PassThru
+          try {
+            $ok = $false
+            foreach ($i in 1..30) {
+              Start-Sleep 2
+              try {
+                $page = Invoke-WebRequest http://127.0.0.1:5000/ -UseBasicParsing
+                if ($page.Content -match 'MP3 Converter') { $ok = $true; break }
+              } catch {}
+            }
+            if (-not $ok) { throw 'Packaged app did not serve the page' }
+          } finally {
+            taskkill /F /T /PID $app.Id
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MP3Converter
+          path: dist/MP3Converter.exe
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          Download **MP3Converter.exe** and double-click it. Close its console window to quit.
+
+          Windows may show a SmartScreen warning because the app is unsigned: click **More info**, then **Run anyway**.
+
+          Includes FFmpeg $env:FFMPEG_VERSION (GPL, see FFmpeg-LICENSE.txt).
+          "@
+          gh release create $env:GITHUB_REF_NAME dist/MP3Converter.exe FFmpeg-LICENSE.txt --title $env:GITHUB_REF_NAME --notes $notes --generate-notes

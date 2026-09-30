@@ -3,114 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DJ Audio Converter (FLAC & WAV to MP3)</title>
+    <title>MP3 Converter</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        // Saved choice wins; otherwise follow the system theme
+        let savedTheme = null;
+        try { savedTheme = localStorage.getItem('theme'); } catch (e) {}
+        const startDark = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', startDark);
+    </script>
+    <style>
+        input[type="text"]::placeholder { color: #71717a; }
+        .dark input[type="text"]::placeholder { color: #a1a1aa; }
+        #logArea::-webkit-scrollbar { width: 8px; }
+        #logArea::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.5); border-radius: 4px; }
+
+        /* Faint dot grid over the page background */
+        .backdrop-grid {
+            background-image: radial-gradient(rgba(24, 24, 27, 0.13) 1px, transparent 1px);
+            background-size: 22px 22px;
+        }
+        .dark .backdrop-grid { background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px); }
+
+        /* While running, the bar is a moving gradient; end states use a flat colour */
+        #progressBar.bg-indigo-500 {
+            background-image: linear-gradient(90deg, #6366f1, #d946ef, #6366f1);
+            background-size: 200% 100%;
+            animation: bar-slide 1.6s linear infinite;
+        }
+        @keyframes bar-slide { to { background-position: -200% 0; } }
+        @media (prefers-reduced-motion: reduce) { #progressBar.bg-indigo-500 { animation: none; } }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-8 font-sans">
-    <div class="max-w-2xl mx-auto bg-gray-800 p-8 rounded-lg shadow-xl">
-        <h1 class="text-3xl font-bold mb-2 text-blue-400">FLAC & WAV to MP3 320kbps</h1>
-        <p class="text-gray-400 text-sm mb-6">Converts both FLAC and WAV tracks to DJ-ready 320kbps MP3s.</p>
-        
-        <div class="space-y-4">
-            <!-- Input Folder -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Input Folder</label>
-                <div class="flex gap-2">
-                    <input type="text" id="inputDir" placeholder="e.g., C:\Users\DJ\Music\Unconverted" 
-                           class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
-                    <button onclick="browseFolder('inputDir')" 
-                            class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors">
-                        Browse...
-                    </button>
-                </div>
-            </div>
-
-            <!-- Output Folder -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Output Folder</label>
-                <div class="flex gap-2">
-                    <input type="text" id="outputDir" placeholder="e.g., C:\Users\DJ\Music\MP3s_320" 
-                           class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
-                    <button onclick="browseFolder('outputDir')" 
-                            class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors">
-                        Browse...
-                    </button>
-                </div>
-            </div>
-
-            <!-- Create Folder Checkbox -->
-            <div class="flex items-center mt-2">
-                <input type="checkbox" id="createFolder" checked class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500">
-                <label for="createFolder" class="ml-2 text-sm select-none cursor-pointer">Create output folder if it doesn't exist</label>
-            </div>
-
-            <button id="startBtn" onclick="startConversion()" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition-colors mt-4">
-                Start Conversion
-            </button>
-        </div>
-
-        <!-- Progress Log -->
-        <div id="progressSection" class="mt-8 hidden">
-            <div class="flex justify-between text-sm mb-1">
-                <span id="progressText">Preparing...</span>
-                <span id="progressPercent">0%</span>
-            </div>
-            <div class="w-full bg-gray-700 rounded-full h-4 mb-4 overflow-hidden">
-                <div id="progressBar" class="bg-blue-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
-            </div>
-            
-            <div class="bg-gray-950 p-3 rounded h-48 overflow-y-auto font-mono text-sm border border-gray-700" id="logArea">
-            </div>
-        </div>
+<body class="bg-slate-100 dark:bg-black text-zinc-950 dark:text-white min-h-screen px-4 py-12 font-sans antialiased">
+    <!-- Decorative backdrop -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="backdrop-grid absolute inset-0"></div>
+        <div class="absolute -top-40 -left-32 w-[32rem] h-[32rem] rounded-full bg-indigo-400/40 dark:bg-indigo-600/30 blur-3xl"></div>
+        <div class="absolute -bottom-48 -right-32 w-[34rem] h-[34rem] rounded-full bg-fuchsia-400/30 dark:bg-fuchsia-600/20 blur-3xl"></div>
     </div>
 
+    <main class="max-w-xl mx-auto">
+        <header class="mb-8 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-lg shadow-indigo-500/40 flex items-center justify-center text-white">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">MP3 <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">Converter</span></h1>
+                    <p class="text-zinc-600 dark:text-zinc-300 text-sm mt-0.5">Convert FLAC and WAV files to 320 kbps MP3.</p>
+                </div>
+            </div>
+            <button id="themeBtn" onclick="toggleTheme()" aria-label="Switch between light and dark mode" title="Switch between light and dark mode"
+                    class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 shadow-sm transition-colors">
+                <!-- Sun: shown in dark mode -->
+                <svg class="hidden dark:block w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                <!-- Moon: shown in light mode -->
+                <svg class="dark:hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            </button>
+        </header>
+
+        <div class="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-3xl p-6 space-y-6 shadow-xl shadow-zinc-900/10 dark:shadow-black/60">
+            <!-- Source -->
+            <div>
+                <label for="inputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2">Source</label>
+                <div class="flex gap-2">
+                    <input type="text" id="inputDir" placeholder="Folder or ZIP file" spellcheck="false"
+                           class="flex-1 min-w-0 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40 transition">
+                    <button onclick="browseFolder('inputDir')"
+                            class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                        Folder
+                    </button>
+                    <button onclick="browseFolder('inputDir', 'zip')"
+                            class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
+                        ZIP
+                    </button>
+                </div>
+            </div>
+
+            <!-- Destination -->
+            <div>
+                <label for="outputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2">Destination</label>
+                <div class="flex gap-2">
+                    <input type="text" id="outputDir" placeholder="Output folder" spellcheck="false"
+                           class="flex-1 min-w-0 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40 transition">
+                    <button onclick="browseFolder('outputDir')"
+                            class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                        Browse
+                    </button>
+                </div>
+                <p id="outputPreview" class="text-xs font-medium text-indigo-700 dark:text-indigo-300 mt-2 break-all hidden"></p>
+            </div>
+
+            <!-- Options -->
+            <div class="grid gap-3">
+                <label class="flex items-start gap-3 cursor-pointer select-none rounded-2xl border border-zinc-300 dark:border-zinc-700 p-4 transition-colors hover:border-zinc-400 dark:hover:border-zinc-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 dark:has-[:checked]:border-indigo-400 dark:has-[:checked]:bg-indigo-500/15">
+                    <input type="checkbox" id="createFolder" onchange="syncOutputDir()" class="peer sr-only">
+                    <span class="mt-0.5 shrink-0 w-9 h-5 rounded-full bg-zinc-400 dark:bg-zinc-600 peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+                    <span>
+                        <span class="block text-sm font-semibold">Create a new folder</span>
+                        <span class="block text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">Named after the source with <span class="font-mono">_mp3</span> added. Placed in the destination, or next to the source if no destination is set.</span>
+                    </span>
+                </label>
+
+                <label class="flex items-start gap-3 cursor-pointer select-none rounded-2xl border border-zinc-300 dark:border-zinc-700 p-4 transition-colors hover:border-zinc-400 dark:hover:border-zinc-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 dark:has-[:checked]:border-indigo-400 dark:has-[:checked]:bg-indigo-500/15">
+                    <input type="checkbox" id="tagFiles" class="peer sr-only">
+                    <span class="mt-0.5 shrink-0 w-9 h-5 rounded-full bg-zinc-400 dark:bg-zinc-600 peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+                    <span>
+                        <span class="block text-sm font-semibold">Tag from SoundCloud</span>
+                        <span class="block text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">Fills in missing artist, genre and artwork using the file name.</span>
+                    </span>
+                </label>
+            </div>
+
+            <div>
+                <p id="formError" class="text-sm font-medium text-red-700 dark:text-red-400 mb-3 hidden"></p>
+                <button id="startBtn" onclick="startConversion()"
+                        class="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-[0.99] transition">
+                    Convert
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressSection" class="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-3xl p-6 mt-4 shadow-xl shadow-zinc-900/10 dark:shadow-black/60 hidden">
+            <div class="flex justify-between items-baseline text-sm mb-2">
+                <span id="progressText" class="font-semibold">Starting…</span>
+                <span id="progressPercent" class="text-zinc-600 dark:text-zinc-300 font-medium tabular-nums">0%</span>
+            </div>
+            <div class="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                <div id="progressBar" class="bg-indigo-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <div id="logArea" class="mt-4 h-48 overflow-y-auto font-mono text-xs leading-5 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl p-3"></div>
+        </div>
+    </main>
+
     <script>
-        async function browseFolder(inputId) {
+        let failedCount = 0;
+        let stopped = false;
+
+        function toggleTheme() {
+            const dark = document.documentElement.classList.toggle('dark');
+            try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+        }
+
+        async function browseFolder(inputId, type = 'folder') {
             try {
-                const response = await fetch('/browse');
+                const response = await fetch('/browse?type=' + type);
                 const data = await response.json();
                 if (data.path) {
                     document.getElementById(inputId).value = data.path;
+                    syncOutputDir();
                 }
             } catch (error) {
                 console.error("Failed to open folder browser:", error);
             }
         }
 
-        function log(msg, color = 'text-gray-300') {
+        // When auto-creating, preview where "<source name>_mp3" will end up
+        function syncOutputDir() {
+            const auto = document.getElementById('createFolder').checked;
+            const preview = document.getElementById('outputPreview');
+            const inputDir = document.getElementById('inputDir').value.trim().replace(/[\\/]+$/, '').replace(/\.zip$/i, '');
+            const outputDir = document.getElementById('outputDir').value.trim().replace(/[\\/]+$/, '');
+            document.getElementById('outputDir').placeholder = auto ? 'Optional: next to the source by default' : 'Output folder';
+            preview.classList.toggle('hidden', !auto || !inputDir);
+            if (auto && inputDir) {
+                const name = inputDir.split(/[\\/]/).pop() + '_mp3';
+                preview.innerText = 'Saving to ' + (outputDir ? outputDir + '\\' + name : inputDir + '_mp3');
+            }
+        }
+        document.getElementById('inputDir').addEventListener('input', syncOutputDir);
+        document.getElementById('outputDir').addEventListener('input', syncOutputDir);
+
+        function log(msg, color = 'text-zinc-600 dark:text-zinc-300') {
             const logArea = document.getElementById('logArea');
-            logArea.innerHTML += `<div class="${color}">${msg}</div>`;
+            const line = document.createElement('div');
+            line.className = color;
+            line.textContent = msg;
+            logArea.appendChild(line);
             logArea.scrollTop = logArea.scrollHeight;
         }
 
+        function showFormError(msg) {
+            const formError = document.getElementById('formError');
+            formError.textContent = msg;
+            formError.classList.toggle('hidden', !msg);
+        }
+
+        function setBarColor(color) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.classList.remove('bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-red-500');
+            progressBar.classList.add(color);
+        }
+
         async function startConversion() {
-            const inputDir = document.getElementById('inputDir').value;
-            const outputDir = document.getElementById('outputDir').value;
+            const inputDir = document.getElementById('inputDir').value.trim();
+            const outputDir = document.getElementById('outputDir').value.trim();
             const createFolder = document.getElementById('createFolder').checked;
             const startBtn = document.getElementById('startBtn');
-            const progressSection = document.getElementById('progressSection');
-            
-            if (!inputDir || !outputDir) {
-                alert("Please provide both input and output paths.");
+
+            if (!inputDir) {
+                showFormError('Choose a source folder or ZIP file.');
                 return;
             }
+            if (!outputDir && !createFolder) {
+                showFormError('Choose a destination, or turn on "Create a new folder".');
+                return;
+            }
+            showFormError('');
 
+            failedCount = 0;
+            stopped = false;
             startBtn.disabled = true;
-            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            progressSection.classList.remove('hidden');
+            startBtn.innerText = 'Converting…';
+            document.getElementById('progressSection').classList.remove('hidden');
             document.getElementById('logArea').innerHTML = '';
             document.getElementById('progressBar').style.width = '0%';
-            log('Initiating conversion task...', 'text-blue-400');
+            document.getElementById('progressPercent').innerText = '0%';
+            document.getElementById('progressText').innerText = 'Starting…';
+            setBarColor('bg-indigo-500');
 
             try {
                 const response = await fetch('/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        input_dir: inputDir, 
-                        output_dir: outputDir, 
-                        create_folder: createFolder 
+                    body: JSON.stringify({
+                        input_dir: inputDir,
+                        output_dir: outputDir,
+                        create_folder: createFolder,
+                        tag: document.getElementById('tagFiles').checked
                     })
                 });
 
@@ -121,10 +248,10 @@
                 while (true) {
                     const { value, done } = await reader.read();
                     if (done) break;
-                    
+
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n\n');
-                    buffer = lines.pop(); 
+                    buffer = lines.pop();
 
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
@@ -134,10 +261,10 @@
                     }
                 }
             } catch (error) {
-                log(`Connection Error: ${error.message}`, 'text-red-500');
+                handleStreamData({ status: 'error', msg: `Lost connection to the app: ${error.message}` });
             } finally {
                 startBtn.disabled = false;
-                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                startBtn.innerText = 'Convert';
             }
         }
 
@@ -147,22 +274,35 @@
             const progressPercent = document.getElementById('progressPercent');
 
             if (data.status === 'error') {
-                log(`ERROR: ${data.msg}`, 'text-red-500');
+                stopped = true;
+                progressText.innerText = 'Stopped';
+                setBarColor('bg-red-500');
+                log(data.msg, 'text-red-700 dark:text-red-400');
+            } else if (data.status === 'info') {
+                progressText.innerText = data.msg;
+                log(data.msg);
             } else if (data.status === 'start') {
-                log(`Found ${data.total} audio files (FLAC/WAV). Starting...`, 'text-green-400');
+                log(`Found ${data.total} ${data.total === 1 ? 'file' : 'files'}`);
             } else if (data.status === 'progress') {
                 const percent = Math.round((data.current / data.total) * 100);
                 progressBar.style.width = `${percent}%`;
                 progressPercent.innerText = `${percent}%`;
-                progressText.innerText = `Processing: ${data.file} (${data.current}/${data.total})`;
+                progressText.innerText = `${data.current} of ${data.total}`;
             } else if (data.status === 'success') {
-                log(`✔ Converted: ${data.file}`, 'text-gray-400');
+                log(`✓ ${data.file}`, 'text-zinc-950 dark:text-white font-medium');
+                if (data.tag_msg) log(`   Tags: ${data.tag_msg}`, 'text-zinc-600 dark:text-zinc-400 whitespace-pre');
+                if (data.tag_error) log(`   Tagging failed: ${data.tag_error}`, 'text-amber-700 dark:text-amber-400 whitespace-pre');
             } else if (data.status === 'warning') {
-                log(`⚠ Failed: ${data.msg}`, 'text-yellow-500');
-            } else if (data.status === 'done') {
-                progressText.innerText = "Conversion Complete!";
-                progressBar.classList.replace('bg-blue-500', 'bg-green-500');
-                log('🎉 All files processed successfully!', 'text-green-400 font-bold mt-2');
+                failedCount++;
+                log(`✗ ${data.msg}`, 'text-amber-700 dark:text-amber-400');
+            } else if (data.status === 'done' && !stopped) {
+                if (failedCount) {
+                    progressText.innerText = `Done, ${failedCount} failed`;
+                    setBarColor('bg-amber-500');
+                } else {
+                    progressText.innerText = 'Done';
+                    setBarColor('bg-emerald-500');
+                }
             }
         }
     </script>
