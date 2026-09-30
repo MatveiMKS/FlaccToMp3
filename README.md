@@ -89,7 +89,7 @@ Pour générer le `.exe` en local, placez un `ffmpeg.exe` dans le dossier du pro
 
 ```bash
 pip install pyinstaller
-pyinstaller --noconfirm --onefile --windowed --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
+pyinstaller --noconfirm --onefile --windowed --icon static/icon.ico --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
 ```
 
 Le résultat est `dist/MP3Converter.exe`.
@@ -98,7 +98,7 @@ Sur un Mac, placez un binaire `ffmpeg` statique dans le dossier du projet et lan
 
 ```bash
 pip install pyinstaller
-pyinstaller --noconfirm --windowed --name MP3Converter --osx-bundle-identifier com.mp3converter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
+pyinstaller --noconfirm --windowed --icon static/icon.icns --name MP3Converter --osx-bundle-identifier com.mp3converter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
 ```
 
 Le résultat est `dist/MP3Converter.app`. PyInstaller ne sait pas compiler pour un autre système : l'application Mac ne peut être générée que sur un Mac, et pour l'architecture (Apple Silicon ou Intel) de ce Mac.

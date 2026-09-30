@@ -34,6 +34,8 @@ FFMPEG = BUNDLED_FFMPEG if os.path.isfile(BUNDLED_FFMPEG) else shutil.which('ffm
 NO_WINDOW = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 
 APP_NAME = 'MP3 Converter'
+# Window and taskbar icon; the packaged exe and app bundle embed their own (see the build commands)
+ICON = os.path.join(BASE_DIR, 'static', 'icon.ico') if WINDOWS else None
 # macOS keeps port 5000 for its AirPlay Receiver
 DEFAULT_PORT = 5050 if MAC else 5000
 
@@ -493,7 +495,7 @@ def main():
         else:
             data_dir = os.environ.get('LOCALAPPDATA') or tempfile.gettempdir()
         storage = os.path.join(data_dir, 'MP3Converter')
-        webview.start(gui='edgechromium' if WINDOWS else None, private_mode=False, storage_path=storage)
+        webview.start(gui='edgechromium' if WINDOWS else None, private_mode=False, storage_path=storage, icon=ICON)
     except Exception:
         window = None
         run_in_browser(url)

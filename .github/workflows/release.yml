@@ -38,7 +38,7 @@ jobs:
           Copy-Item "ffmpeg-dl/$name/LICENSE" FFmpeg-LICENSE.txt
 
       - name: Build exe
-        run: pyinstaller --noconfirm --onefile --windowed --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
+        run: pyinstaller --noconfirm --onefile --windowed --icon static/icon.ico --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
 
       - name: Smoke test
         shell: pwsh
@@ -97,7 +97,7 @@ jobs:
           ./ffmpeg -hide_banner -encoders | grep libmp3lame
 
       - name: Build app
-        run: pyinstaller --noconfirm --windowed --name MP3Converter --osx-bundle-identifier com.mp3converter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
+        run: pyinstaller --noconfirm --windowed --icon static/icon.icns --name MP3Converter --osx-bundle-identifier com.mp3converter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
 
       - name: Smoke test
         run: |
