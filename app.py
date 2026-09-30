@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinter import filedialog
 import sys
 import webbrowser
-from tagger import tag_mp3
+from tagger import tag_mp3, describe_tag_result
 
 # When packaged with PyInstaller, bundled files are unpacked to sys._MEIPASS
 FROZEN = getattr(sys, 'frozen', False)
@@ -70,11 +70,12 @@ def convert():
             for temp_dir in temp_dirs:
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
+    # Events carry a 'code' the page translates; 'msg' is the English fallback
     def run(temp_dirs):
         # Validate Input Directory (or ZIP archive)
         is_zip = os.path.isfile(input_dir) and zipfile.is_zipfile(input_dir)
         if not input_dir or not (is_zip or os.path.isdir(input_dir)):
-            yield f"data: {json.dumps({'status': 'error', 'msg': 'Input must be an existing folder or ZIP file.'})}\n\n"
+            yield f"data: {json.dumps({'status': 'error', 'code': 'input_invalid', 'msg': 'Input must be an existing folder or ZIP file.'})}\n\n"
             return
 
         # Normalize & Create Output Directory
@@ -87,7 +88,7 @@ def convert():
                 input_name = os.path.splitext(input_name)[0]
             norm_output_dir = os.path.normpath(os.path.join(parent_dir, input_name + '_mp3'))
         elif not output_dir:
-            yield f"data: {json.dumps({'status': 'error', 'msg': 'Please specify an output directory.'})}\n\n"
+            yield f"data: {json.dumps({'status': 'error', 'code': 'output_missing', 'msg': 'Please specify an output directory.'})}\n\n"
             return
         else:
             norm_output_dir = os.path.normpath(output_dir)
@@ -97,34 +98,34 @@ def convert():
                 try:
                     os.makedirs(norm_output_dir, exist_ok=True)
                 except Exception as e:
-                    yield f"data: {json.dumps({'status': 'error', 'msg': f'Failed to create output folder: {str(e)}'})}\n\n"
+                    yield f"data: {json.dumps({'status': 'error', 'code': 'output_create_failed', 'detail': str(e), 'msg': f'Failed to create output folder: {str(e)}'})}\n\n"
                     return
             else:
-                yield f"data: {json.dumps({'status': 'error', 'msg': 'Output directory does not exist.'})}\n\n"
+                yield f"data: {json.dumps({'status': 'error', 'code': 'output_not_found', 'msg': 'Output directory does not exist.'})}\n\n"
                 return
         elif not os.path.isdir(norm_output_dir):
-            yield f"data: {json.dumps({'status': 'error', 'msg': 'Target output path is a file, not a directory.'})}\n\n"
+            yield f"data: {json.dumps({'status': 'error', 'code': 'output_is_file', 'msg': 'Target output path is a file, not a directory.'})}\n\n"
             return
 
         # Find both FLAC and WAV files
         if is_zip:
-            yield f"data: {json.dumps({'status': 'info', 'msg': 'Extracting ZIP archive...'})}\n\n"
+            yield f"data: {json.dumps({'status': 'info', 'code': 'extracting', 'msg': 'Extracting ZIP archive...'})}\n\n"
             temp_dirs.append(tempfile.mkdtemp(prefix='flac2mp3_'))
             try:
                 audio_files = extract_zip_audio(input_dir, temp_dirs[0])
             except Exception as e:
-                yield f"data: {json.dumps({'status': 'error', 'msg': f'Failed to extract ZIP: {str(e)}'})}\n\n"
+                yield f"data: {json.dumps({'status': 'error', 'code': 'zip_failed', 'detail': str(e), 'msg': f'Failed to extract ZIP: {str(e)}'})}\n\n"
                 return
         else:
             audio_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.lower().endswith(VALID_EXTENSIONS)]
         total_files = len(audio_files)
 
         if total_files == 0:
-            yield f"data: {json.dumps({'status': 'error', 'msg': 'No FLAC or WAV files found in the input.'})}\n\n"
+            yield f"data: {json.dumps({'status': 'error', 'code': 'no_audio', 'msg': 'No FLAC or WAV files found in the input.'})}\n\n"
             return
 
         if not FFMPEG:
-            yield f"data: {json.dumps({'status': 'error', 'msg': 'FFmpeg not found. Ensure it is installed and in your Windows PATH.'})}\n\n"
+            yield f"data: {json.dumps({'status': 'error', 'code': 'ffmpeg_missing', 'msg': 'FFmpeg not found. Ensure it is installed and in your Windows PATH.'})}\n\n"
             return
 
         yield f"data: {json.dumps({'status': 'start', 'total': total_files})}\n\n"
@@ -157,14 +158,15 @@ def convert():
             try:
                 subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
             except (OSError, subprocess.CalledProcessError):
-                events.put({'status': 'warning', 'msg': f'Failed to convert {filename}'})
+                events.put({'status': 'warning', 'code': 'convert_failed', 'file': filename, 'msg': f'Failed to convert {filename}'})
                 return
 
             event = {'status': 'success', 'file': filename}
             if tag and not cancelled.is_set():
                 try:
                     with tag_slots:
-                        event['tag_msg'] = tag_mp3(out_path)
+                        event['tag'] = tag_mp3(out_path)
+                    event['tag_msg'] = describe_tag_result(event['tag'])
                 except Exception as e:
                     event['tag_error'] = str(e)
             events.put(event)
@@ -190,11 +192,12 @@ def convert():
     return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == '__main__':
-    print("Starting Web Server. Open http://127.0.0.1:5000 in your browser.")
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Starting Web Server. Open http://127.0.0.1:{port} in your browser.")
     if FROZEN:
         # Packaged app: no debug reloader, and open the page for the user
         print("Close this window to quit.")
-        threading.Timer(1, webbrowser.open, args=("http://127.0.0.1:5000",)).start()
-        app.run(port=5000)
+        threading.Timer(1, webbrowser.open, args=(f"http://127.0.0.1:{port}",)).start()
+        app.run(port=port)
     else:
-        app.run(debug=True, port=5000)
+        app.run(debug=True, port=port)

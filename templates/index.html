@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP3 Converter</title>
+    <title>Convertisseur MP3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' };
@@ -51,30 +51,36 @@
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">MP3 <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">Converter</span></h1>
-                    <p class="text-zinc-600 dark:text-zinc-300 text-sm mt-0.5">Convert FLAC and WAV files to 320 kbps MP3.</p>
+                    <h1 class="text-2xl font-bold tracking-tight" data-i18n-html="heading"></h1>
+                    <p class="text-zinc-600 dark:text-zinc-300 text-sm mt-0.5" data-i18n="subtitle"></p>
                 </div>
             </div>
-            <button id="themeBtn" onclick="toggleTheme()" aria-label="Switch between light and dark mode" title="Switch between light and dark mode"
+            <div class="shrink-0 flex items-center gap-2">
+            <div role="group" data-i18n-title="langTitle" class="flex h-10 p-1 gap-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                <button data-lang="fr" onclick="setLang('fr')" class="px-2.5 rounded-lg transition-colors">FR</button>
+                <button data-lang="en" onclick="setLang('en')" class="px-2.5 rounded-lg transition-colors">EN</button>
+            </div>
+            <button id="themeBtn" onclick="toggleTheme()" data-i18n-title="themeTitle"
                     class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 shadow-sm transition-colors">
                 <!-- Sun: shown in dark mode -->
                 <svg class="hidden dark:block w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
                 <!-- Moon: shown in light mode -->
                 <svg class="dark:hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
             </button>
+            </div>
         </header>
 
         <div class="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-3xl p-6 space-y-6 shadow-xl shadow-zinc-900/10 dark:shadow-black/60">
             <!-- Source -->
             <div>
-                <label for="inputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2">Source</label>
+                <label for="inputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2" data-i18n="source"></label>
                 <div class="flex gap-2">
-                    <input type="text" id="inputDir" placeholder="Folder or ZIP file" spellcheck="false"
+                    <input type="text" id="inputDir" data-i18n-placeholder="sourcePlaceholder" spellcheck="false"
                            class="flex-1 min-w-0 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40 transition">
                     <button onclick="browseFolder('inputDir')"
                             class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                        Folder
+                        <span data-i18n="folder"></span>
                     </button>
                     <button onclick="browseFolder('inputDir', 'zip')"
                             class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
@@ -86,14 +92,14 @@
 
             <!-- Destination -->
             <div>
-                <label for="outputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2">Destination</label>
+                <label for="outputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2" data-i18n="destination"></label>
                 <div class="flex gap-2">
-                    <input type="text" id="outputDir" placeholder="Output folder" spellcheck="false"
+                    <input type="text" id="outputDir" data-i18n-placeholder="destPlaceholder" spellcheck="false"
                            class="flex-1 min-w-0 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40 transition">
                     <button onclick="browseFolder('outputDir')"
                             class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                        Browse
+                        <span data-i18n="browse"></span>
                     </button>
                 </div>
                 <p id="outputPreview" class="text-xs font-medium text-indigo-700 dark:text-indigo-300 mt-2 break-all hidden"></p>
@@ -105,8 +111,8 @@
                     <input type="checkbox" id="createFolder" onchange="syncOutputDir()" class="peer sr-only">
                     <span class="mt-0.5 shrink-0 w-9 h-5 rounded-full bg-zinc-400 dark:bg-zinc-600 peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
                     <span>
-                        <span class="block text-sm font-semibold">Create a new folder</span>
-                        <span class="block text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">Named after the source with <span class="font-mono">_mp3</span> added. Placed in the destination, or next to the source if no destination is set.</span>
+                        <span class="block text-sm font-semibold" data-i18n="createTitle"></span>
+                        <span class="block text-xs text-zinc-600 dark:text-zinc-300 mt-0.5" data-i18n-html="createDesc"></span>
                     </span>
                 </label>
 
@@ -114,8 +120,8 @@
                     <input type="checkbox" id="tagFiles" class="peer sr-only">
                     <span class="mt-0.5 shrink-0 w-9 h-5 rounded-full bg-zinc-400 dark:bg-zinc-600 peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
                     <span>
-                        <span class="block text-sm font-semibold">Tag from SoundCloud</span>
-                        <span class="block text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">Fills in missing artist, genre and artwork using the file name.</span>
+                        <span class="block text-sm font-semibold" data-i18n="tagTitle"></span>
+                        <span class="block text-xs text-zinc-600 dark:text-zinc-300 mt-0.5" data-i18n="tagDesc"></span>
                     </span>
                 </label>
             </div>
@@ -123,16 +129,14 @@
             <div>
                 <p id="formError" class="text-sm font-medium text-red-700 dark:text-red-400 mb-3 hidden"></p>
                 <button id="startBtn" onclick="startConversion()"
-                        class="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-[0.99] transition">
-                    Convert
-                </button>
+                        class="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-[0.99] transition"></button>
             </div>
         </div>
 
         <!-- Progress -->
         <div id="progressSection" class="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-3xl p-6 mt-4 shadow-xl shadow-zinc-900/10 dark:shadow-black/60 hidden">
             <div class="flex justify-between items-baseline text-sm mb-2">
-                <span id="progressText" class="font-semibold">Starting…</span>
+                <span id="progressText" class="font-semibold"></span>
                 <span id="progressPercent" class="text-zinc-600 dark:text-zinc-300 font-medium tabular-nums">0%</span>
             </div>
             <div class="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
@@ -144,8 +148,157 @@
     </main>
 
     <script>
+        const I18N = {
+            fr: {
+                pageTitle: 'Convertisseur MP3',
+                heading: 'Convertisseur <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">MP3</span>',
+                subtitle: 'Convertissez vos fichiers FLAC et WAV en MP3 320 kbps.',
+                themeTitle: 'Basculer entre le mode clair et le mode sombre',
+                langTitle: 'Langue',
+                source: 'Source',
+                sourcePlaceholder: 'Dossier ou fichier ZIP',
+                folder: 'Dossier',
+                destination: 'Destination',
+                destPlaceholder: 'Dossier de sortie',
+                destPlaceholderAuto: 'Facultatif : à côté de la source par défaut',
+                browse: 'Parcourir',
+                savingTo: p => `Enregistrement dans ${p.path}`,
+                createTitle: 'Créer un nouveau dossier',
+                createDesc: 'Porte le nom de la source suivi de <span class="font-mono">_mp3</span>. Créé dans la destination, ou à côté de la source si aucune destination n\'est indiquée.',
+                tagTitle: 'Taguer depuis SoundCloud',
+                tagDesc: 'Complète l\'artiste, le genre et la pochette manquants à partir du nom du fichier.',
+                convert: 'Convertir',
+                converting: 'Conversion…',
+                needSource: 'Choisissez un dossier source ou un fichier ZIP.',
+                needDest: 'Choisissez une destination, ou activez « Créer un nouveau dossier ».',
+                starting: 'Démarrage…',
+                stopped: 'Arrêté',
+                done: 'Terminé',
+                doneFailed: p => `Terminé, ${p.n} ${p.n === 1 ? 'échec' : 'échecs'}`,
+                progress: p => `${p.current} sur ${p.total}`,
+                found: p => p.n === 1 ? '1 fichier trouvé' : `${p.n} fichiers trouvés`,
+                converted: p => `✓ ${p.file}`,
+                convert_failed: p => `✗ Échec de la conversion de ${p.file}`,
+                tagLine: p => `   Tags : ${p.text}`,
+                tagFailed: p => `   Échec du tag : ${p.detail}`,
+                tag_already: 'artiste, genre et pochette déjà présents',
+                tag_no_results: 'aucun résultat sur SoundCloud',
+                tag_nothing: 'aucune donnée manquante trouvée',
+                tag_added: p => `ajout : ${p.list}`,
+                field_artist: 'Artiste',
+                field_genre: 'Genre',
+                field_artwork: 'Pochette',
+                connection_lost: p => `Connexion à l'application perdue : ${p.detail}`,
+                extracting: 'Extraction de l\'archive ZIP…',
+                input_invalid: 'La source doit être un dossier ou un fichier ZIP existant.',
+                output_missing: 'Veuillez indiquer un dossier de sortie.',
+                output_create_failed: p => `Impossible de créer le dossier de sortie : ${p.detail}`,
+                output_not_found: 'Le dossier de sortie n\'existe pas.',
+                output_is_file: 'Le chemin de sortie est un fichier, pas un dossier.',
+                zip_failed: p => `Impossible d'extraire le ZIP : ${p.detail}`,
+                no_audio: 'Aucun fichier FLAC ou WAV trouvé dans la source.',
+                ffmpeg_missing: 'FFmpeg est introuvable. Vérifiez qu\'il est installé et présent dans le PATH de Windows.'
+            },
+            en: {
+                pageTitle: 'MP3 Converter',
+                heading: 'MP3 <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">Converter</span>',
+                subtitle: 'Convert FLAC and WAV files to 320 kbps MP3.',
+                themeTitle: 'Switch between light and dark mode',
+                langTitle: 'Language',
+                source: 'Source',
+                sourcePlaceholder: 'Folder or ZIP file',
+                folder: 'Folder',
+                destination: 'Destination',
+                destPlaceholder: 'Output folder',
+                destPlaceholderAuto: 'Optional: next to the source by default',
+                browse: 'Browse',
+                savingTo: p => `Saving to ${p.path}`,
+                createTitle: 'Create a new folder',
+                createDesc: 'Named after the source with <span class="font-mono">_mp3</span> added. Placed in the destination, or next to the source if no destination is set.',
+                tagTitle: 'Tag from SoundCloud',
+                tagDesc: 'Fills in missing artist, genre and artwork using the file name.',
+                convert: 'Convert',
+                converting: 'Converting…',
+                needSource: 'Choose a source folder or ZIP file.',
+                needDest: 'Choose a destination, or turn on "Create a new folder".',
+                starting: 'Starting…',
+                stopped: 'Stopped',
+                done: 'Done',
+                doneFailed: p => `Done, ${p.n} failed`,
+                progress: p => `${p.current} of ${p.total}`,
+                found: p => `Found ${p.n} ${p.n === 1 ? 'file' : 'files'}`,
+                converted: p => `✓ ${p.file}`,
+                convert_failed: p => `✗ Failed to convert ${p.file}`,
+                tagLine: p => `   Tags: ${p.text}`,
+                tagFailed: p => `   Tagging failed: ${p.detail}`,
+                tag_already: 'already has artist, genre and artwork',
+                tag_no_results: 'no results found on SoundCloud',
+                tag_nothing: 'no missing data could be found',
+                tag_added: p => `added ${p.list}`,
+                field_artist: 'Artist',
+                field_genre: 'Genre',
+                field_artwork: 'Artwork',
+                connection_lost: p => `Lost connection to the app: ${p.detail}`,
+                extracting: 'Extracting ZIP archive…',
+                input_invalid: 'Source must be an existing folder or ZIP file.',
+                output_missing: 'Please specify an output folder.',
+                output_create_failed: p => `Failed to create output folder: ${p.detail}`,
+                output_not_found: 'Output folder does not exist.',
+                output_is_file: 'Output path is a file, not a folder.',
+                zip_failed: p => `Failed to extract ZIP: ${p.detail}`,
+                no_audio: 'No FLAC or WAV files found in the source.',
+                ffmpeg_missing: 'FFmpeg not found. Ensure it is installed and in your Windows PATH.'
+            }
+        };
+
+        // French unless the user picked English before
+        let lang = 'fr';
+        try { if (localStorage.getItem('lang') === 'en') lang = 'en'; } catch (e) {}
+
+        function t(key, params = {}) {
+            const entry = I18N[lang][key];
+            if (entry === undefined) return params.msg || key;
+            return typeof entry === 'function' ? entry(params) : entry;
+        }
+
+        // Everything shown after page load is kept as a key + params so it can be re-rendered on language change
         let failedCount = 0;
         let stopped = false;
+        let running = false;
+        let logEntries = [];
+        let progressState = { key: 'starting', params: {} };
+        let formErrorKey = '';
+
+        function setLang(newLang) {
+            lang = newLang;
+            try { localStorage.setItem('lang', lang); } catch (e) {}
+            applyLang();
+        }
+
+        function applyLang() {
+            document.documentElement.lang = lang;
+            document.title = t('pageTitle');
+            document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+            document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                el.title = t(el.dataset.i18nTitle);
+                el.setAttribute('aria-label', el.title);
+            });
+            document.querySelectorAll('[data-lang]').forEach(btn => {
+                const active = btn.dataset.lang === lang;
+                btn.setAttribute('aria-pressed', active);
+                btn.classList.toggle('bg-zinc-900', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('dark:bg-white', active);
+                btn.classList.toggle('dark:text-zinc-950', active);
+            });
+            document.getElementById('startBtn').innerText = t(running ? 'converting' : 'convert');
+            document.getElementById('progressText').innerText = t(progressState.key, progressState.params);
+            showFormError(formErrorKey);
+            syncOutputDir();
+            renderLog();
+        }
 
         function toggleTheme() {
             const dark = document.documentElement.classList.toggle('dark');
@@ -171,29 +324,57 @@
             const preview = document.getElementById('outputPreview');
             const inputDir = document.getElementById('inputDir').value.trim().replace(/[\\/]+$/, '').replace(/\.zip$/i, '');
             const outputDir = document.getElementById('outputDir').value.trim().replace(/[\\/]+$/, '');
-            document.getElementById('outputDir').placeholder = auto ? 'Optional: next to the source by default' : 'Output folder';
+            document.getElementById('outputDir').placeholder = t(auto ? 'destPlaceholderAuto' : 'destPlaceholder');
             preview.classList.toggle('hidden', !auto || !inputDir);
             if (auto && inputDir) {
                 const name = inputDir.split(/[\\/]/).pop() + '_mp3';
-                preview.innerText = 'Saving to ' + (outputDir ? outputDir + '\\' + name : inputDir + '_mp3');
+                preview.innerText = t('savingTo', { path: outputDir ? outputDir + '\\' + name : inputDir + '_mp3' });
             }
         }
         document.getElementById('inputDir').addEventListener('input', syncOutputDir);
         document.getElementById('outputDir').addEventListener('input', syncOutputDir);
 
-        function log(msg, color = 'text-zinc-600 dark:text-zinc-300') {
+        function tagText(tag) {
+            if (tag.code !== 'added') return t('tag_' + tag.code);
+            const list = tag.added.map(([field, value]) => t('field_' + field) + (value ? ` (${value})` : '')).join(', ');
+            return t('tag_added', { list });
+        }
+
+        function logText(entry) {
+            if (entry.key === 'tagLine') return t('tagLine', { text: tagText(entry.params.tag) });
+            return t(entry.key, entry.params);
+        }
+
+        function appendLogLine(entry) {
             const logArea = document.getElementById('logArea');
             const line = document.createElement('div');
-            line.className = color;
-            line.textContent = msg;
+            line.className = entry.color;
+            line.textContent = logText(entry);
             logArea.appendChild(line);
             logArea.scrollTop = logArea.scrollHeight;
         }
 
-        function showFormError(msg) {
+        function log(key, params = {}, color = 'text-zinc-600 dark:text-zinc-300') {
+            const entry = { key, params, color };
+            logEntries.push(entry);
+            appendLogLine(entry);
+        }
+
+        function renderLog() {
+            document.getElementById('logArea').innerHTML = '';
+            logEntries.forEach(appendLogLine);
+        }
+
+        function setProgress(key, params = {}) {
+            progressState = { key, params };
+            document.getElementById('progressText').innerText = t(key, params);
+        }
+
+        function showFormError(key) {
+            formErrorKey = key;
             const formError = document.getElementById('formError');
-            formError.textContent = msg;
-            formError.classList.toggle('hidden', !msg);
+            formError.textContent = key ? t(key) : '';
+            formError.classList.toggle('hidden', !key);
         }
 
         function setBarColor(color) {
@@ -209,24 +390,26 @@
             const startBtn = document.getElementById('startBtn');
 
             if (!inputDir) {
-                showFormError('Choose a source folder or ZIP file.');
+                showFormError('needSource');
                 return;
             }
             if (!outputDir && !createFolder) {
-                showFormError('Choose a destination, or turn on "Create a new folder".');
+                showFormError('needDest');
                 return;
             }
             showFormError('');
 
             failedCount = 0;
             stopped = false;
+            running = true;
+            logEntries = [];
             startBtn.disabled = true;
-            startBtn.innerText = 'Converting…';
+            startBtn.innerText = t('converting');
             document.getElementById('progressSection').classList.remove('hidden');
             document.getElementById('logArea').innerHTML = '';
             document.getElementById('progressBar').style.width = '0%';
             document.getElementById('progressPercent').innerText = '0%';
-            document.getElementById('progressText').innerText = 'Starting…';
+            setProgress('starting');
             setBarColor('bg-indigo-500');
 
             try {
@@ -261,50 +444,52 @@
                     }
                 }
             } catch (error) {
-                handleStreamData({ status: 'error', msg: `Lost connection to the app: ${error.message}` });
+                handleStreamData({ status: 'error', code: 'connection_lost', detail: error.message });
             } finally {
+                running = false;
                 startBtn.disabled = false;
-                startBtn.innerText = 'Convert';
+                startBtn.innerText = t('convert');
             }
         }
 
         function handleStreamData(data) {
             const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
             const progressPercent = document.getElementById('progressPercent');
 
             if (data.status === 'error') {
                 stopped = true;
-                progressText.innerText = 'Stopped';
+                setProgress('stopped');
                 setBarColor('bg-red-500');
-                log(data.msg, 'text-red-700 dark:text-red-400');
+                log(data.code, data, 'text-red-700 dark:text-red-400');
             } else if (data.status === 'info') {
-                progressText.innerText = data.msg;
-                log(data.msg);
+                setProgress(data.code, data);
+                log(data.code, data);
             } else if (data.status === 'start') {
-                log(`Found ${data.total} ${data.total === 1 ? 'file' : 'files'}`);
+                log('found', { n: data.total });
             } else if (data.status === 'progress') {
                 const percent = Math.round((data.current / data.total) * 100);
                 progressBar.style.width = `${percent}%`;
                 progressPercent.innerText = `${percent}%`;
-                progressText.innerText = `${data.current} of ${data.total}`;
+                setProgress('progress', { current: data.current, total: data.total });
             } else if (data.status === 'success') {
-                log(`✓ ${data.file}`, 'text-zinc-950 dark:text-white font-medium');
-                if (data.tag_msg) log(`   Tags: ${data.tag_msg}`, 'text-zinc-600 dark:text-zinc-400 whitespace-pre');
-                if (data.tag_error) log(`   Tagging failed: ${data.tag_error}`, 'text-amber-700 dark:text-amber-400 whitespace-pre');
+                log('converted', { file: data.file }, 'text-zinc-950 dark:text-white font-medium');
+                if (data.tag) log('tagLine', { tag: data.tag }, 'text-zinc-600 dark:text-zinc-400 whitespace-pre');
+                if (data.tag_error) log('tagFailed', { detail: data.tag_error }, 'text-amber-700 dark:text-amber-400 whitespace-pre');
             } else if (data.status === 'warning') {
                 failedCount++;
-                log(`✗ ${data.msg}`, 'text-amber-700 dark:text-amber-400');
+                log(data.code, data, 'text-amber-700 dark:text-amber-400');
             } else if (data.status === 'done' && !stopped) {
                 if (failedCount) {
-                    progressText.innerText = `Done, ${failedCount} failed`;
+                    setProgress('doneFailed', { n: failedCount });
                     setBarColor('bg-amber-500');
                 } else {
-                    progressText.innerText = 'Done';
+                    setProgress('done');
                     setBarColor('bg-emerald-500');
                 }
             }
         }
+
+        applyLang();
     </script>
 </body>
 </html>

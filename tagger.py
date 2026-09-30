@@ -33,8 +33,8 @@ def search_soundcloud(query):
 def tag_mp3(filepath):
     """Fills in missing Artist, Genre and Artwork on one MP3 from SoundCloud.
 
-    Returns a short human-readable summary of what happened.
-    Raises on search/network/file errors.
+    Returns {'code': 'already' | 'no_results' | 'added' | 'nothing', 'added': [[field, value], ...]}
+    where field is 'artist', 'genre' or 'artwork'. Raises on search/network/file errors.
     """
     track_name_from_file = os.path.splitext(os.path.basename(filepath))[0]
 
@@ -51,25 +51,25 @@ def tag_mp3(filepath):
     has_artwork = any(tag.startswith('APIC') for tag in audio.tags.keys())
 
     if has_artist and has_genre and has_artwork:
-        return "already has Artist, Genre and Artwork"
+        return {'code': 'already', 'added': []}
 
     # If anything is missing, scrape SoundCloud
     sc_data = search_soundcloud(track_name_from_file)
 
     if not sc_data:
-        return "no results found on SoundCloud"
+        return {'code': 'no_results', 'added': []}
 
     added = []
 
     # 1. Update Artist
     if not has_artist and sc_data.get('artist'):
         audio.tags.add(TPE1(encoding=3, text=sc_data['artist']))
-        added.append(f"Artist ({sc_data['artist']})")
+        added.append(['artist', sc_data['artist']])
 
     # 2. Update Genre
     if not has_genre and sc_data.get('genre'):
         audio.tags.add(TCON(encoding=3, text=sc_data['genre']))
-        added.append(f"Genre ({sc_data['genre']})")
+        added.append(['genre', sc_data['genre']])
 
     # 3. Update Artwork
     if not has_artwork and sc_data.get('artwork_url'):
@@ -85,14 +85,26 @@ def tag_mp3(filepath):
                     data=img_response.content
                 )
             )
-            added.append("Artwork")
+            added.append(['artwork', None])
 
     # Save only if changes were made
     if added:
         audio.save()
-        return "added " + ", ".join(added)
+        return {'code': 'added', 'added': added}
 
-    return "no missing data could be found"
+    return {'code': 'nothing', 'added': []}
+
+def describe_tag_result(result):
+    """English one-line summary of a tag_mp3() result."""
+    if result['code'] == 'added':
+        return "added " + ", ".join(
+            field.capitalize() + (f" ({value})" if value else "") for field, value in result['added']
+        )
+    return {
+        'already': "already has Artist, Genre and Artwork",
+        'no_results': "no results found on SoundCloud",
+        'nothing': "no missing data could be found",
+    }[result['code']]
 
 def process_mp3_files(folder_path):
     """Iterates through MP3s and updates missing metadata."""
@@ -106,7 +118,7 @@ def process_mp3_files(folder_path):
 
         print(f"\nProcessing: {filename}")
         try:
-            print(f"  [*] {tag_mp3(os.path.join(folder_path, filename))}")
+            print(f"  [*] {describe_tag_result(tag_mp3(os.path.join(folder_path, filename)))}")
         except Exception as e:
             print(f"  [!] Failed: {e}")
 
