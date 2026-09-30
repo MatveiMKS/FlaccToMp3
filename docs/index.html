@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D'Antra au MP3 : le guide</title>
-<meta name="description" content="Présentation d'Antra et mode d'emploi de Convertisseur audio pour transformer une archive téléchargée en MP3 320 kbps.">
+<title>Guide pour un son de qualité</title>
+<meta name="description" content="Trouver des sons en bonne qualité (Antra, Soulseek, SoundCloud), choisir entre FLAC, WAV et MP3 320, et les convertir avec Convertisseur audio.">
 <style>
   :root {
     --bg: #f6f5fb;
@@ -37,7 +37,7 @@
     }
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
   body {
     margin: 0;
     background: var(--bg);
@@ -54,9 +54,9 @@
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
   }
-  nav .wrap { display: flex; align-items: center; gap: 22px; height: 56px; }
-  nav .brand { font-weight: 700; margin-right: auto; }
-  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  nav .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+  nav .brand { font-weight: 700; margin-right: auto; white-space: nowrap; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 15px; white-space: nowrap; }
   nav a:hover { color: var(--text); }
 
   .grad {
@@ -91,6 +91,7 @@
   .eyebrow { color: var(--accent); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
   h2 { font-size: clamp(26px, 4vw, 36px); line-height: 1.2; margin: 6px 0 14px; letter-spacing: -.01em; }
   h3 { font-size: 19px; margin: 0 0 6px; }
+  h3.sub { margin: 32px 0 12px; }
   .lead { color: var(--muted); max-width: 720px; margin: 0 0 28px; }
 
   .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
@@ -100,9 +101,42 @@
   }
   .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
   .card.featured { border-color: var(--accent); }
+  .tag {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent);
+    margin-bottom: 8px;
+  }
   ul.plan { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: 15.5px; }
   ul.plan li { margin-bottom: 6px; }
   ul.plan strong { color: var(--text); }
+
+  /* En bref */
+  .brief { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .brief .card h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .brief .num {
+    width: 30px; height: 30px; border-radius: 9px; flex: none;
+    display: grid; place-items: center; font-size: 15px;
+    background: linear-gradient(135deg, #5b4fe6, #b03fd6); color: #fff;
+  }
+  .brief dl { margin: 0; }
+  .brief dt { font-weight: 700; margin-top: 12px; }
+  .brief dt:first-child { margin-top: 0; }
+  .brief dd { margin: 2px 0 0; color: var(--muted); font-size: 15.5px; }
+  .more { display: inline-block; margin-top: 14px; font-weight: 600; font-size: 15px; text-decoration: none; }
+  .more:hover { text-decoration: underline; }
+  .brief-links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+  .brief-links a {
+    text-decoration: none; font-size: 15px; font-weight: 600;
+    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); margin-top: 18px; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 16px; }
+  th, td { text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+  th { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td { font-variant-numeric: tabular-nums; }
+  td.num-col, th.num-col { text-align: right; }
 
   ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 12px; }
   ol.steps li {
@@ -120,13 +154,17 @@
   ol.steps p { margin: 0; color: var(--muted); }
   ol.steps strong { color: var(--text); }
 
+  .source { padding-top: 12px; }
+  .source + .source { margin-top: 40px; padding-top: 40px; border-top: 1px dashed var(--border); }
+  .source > h3 { font-size: 24px; margin-bottom: 8px; }
+
   .split { display: grid; gap: 36px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
   .split img {
     width: 100%; height: auto; display: block;
     border-radius: 18px; border: 1px solid var(--border); box-shadow: var(--shadow);
   }
   .shot { position: sticky; top: 76px; }
-  @media (max-width: 800px) {
+  @media (max-width: 860px) {
     .split { grid-template-columns: 1fr; }
     .shot { position: static; max-width: 420px; margin: 0 auto; }
     nav a.hide-s { display: none; }
@@ -137,12 +175,14 @@
     border-radius: 14px; padding: 16px 18px; margin-top: 18px; font-size: 15.5px;
   }
   .note p { margin: 0; }
+  .note p + p { margin-top: 8px; }
   .note ul { margin: 8px 0 0; padding-left: 20px; }
   .tip {
     background: var(--accent-soft); border-radius: 14px;
     padding: 16px 18px; margin-top: 18px; font-size: 15.5px;
   }
   .tip p { margin: 0; }
+  .tip p + p { margin-top: 8px; }
   code {
     font: 14px ui-monospace, Consolas, monospace;
     background: var(--surface-2); padding: 2px 6px; border-radius: 6px;
@@ -163,169 +203,307 @@
 
 <nav>
   <div class="wrap">
-    <span class="brand">Antra <span class="grad">→ MP3</span></span>
-    <a href="#dj" class="hide-s">DJ</a>
-    <a href="#antra">Antra</a>
-    <a href="#archive" class="hide-s">Récupérer l'archive</a>
-    <a href="#limites" class="hide-s">Limites</a>
-    <a href="#soundcloud" class="hide-s">SoundCloud</a>
+    <span class="brand">Son <span class="grad">de qualité</span></span>
+    <a href="#bref">En bref</a>
+    <a href="#pourquoi" class="hide-s">Pourquoi</a>
+    <a href="#pieges" class="hide-s">Pièges</a>
+    <a href="#trouver" class="hide-s">Trouver</a>
+    <a href="#formats" class="hide-s">Formats</a>
     <a href="#convertir">Convertir</a>
-    <a href="#faq" class="hide-s">Questions</a>
   </div>
 </nav>
 
 <header>
   <div class="wrap">
-    <h1>Du lien de streaming<br>au <span class="grad">MP3 prêt à écouter</span></h1>
-    <p>Antra récupère votre musique en qualité sans perte. Convertisseur audio transforme ensuite l'archive téléchargée en MP3 320&nbsp;kbps lisibles partout, avec artiste, genre et pochette.</p>
+    <h1>Guide pour un <span class="grad">son de qualité</span></h1>
+    <p>Où trouver des sons en bonne qualité, quel format choisir pour mixer, et comment les convertir en MP3 320&nbsp;kbps ou en WAV sans rien perdre.</p>
     <div class="btns">
-      <a class="btn primary" href="https://github.com/MatveiMKS/FlaccToMp3/releases/latest">Télécharger Convertisseur audio</a>
-      <a class="btn" href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">Ouvrir Antra</a>
+      <a class="btn primary" href="#bref">Lire l'essentiel</a>
+      <a class="btn" href="https://github.com/MatveiMKS/FlaccToMp3/releases/latest">Télécharger Convertisseur audio</a>
     </div>
     <div class="flow">
-      <span class="chip">Lien collé dans Antra</span> →
-      <span class="chip">Archive ZIP de FLAC</span> →
-      <span class="chip">Convertisseur audio</span> →
-      <span class="chip">Dossier de MP3</span>
+      <span class="chip">Trouver une vraie bonne source</span> →
+      <span class="chip">Choisir le format</span> →
+      <span class="chip">Convertir</span>
     </div>
   </div>
 </header>
 
-<section id="dj">
+<!-- ============ EN BREF ============ -->
+<section id="bref">
   <div class="wrap">
-    <div class="eyebrow">Première partie</div>
-    <h2>Pourquoi la qualité compte quand on mixe</h2>
-    <p class="lead">Sur un casque ou une enceinte de salon, un fichier moyen passe encore. Sur une sono de club, ce n'est plus le cas : le volume et la puissance du système mettent en évidence chaque défaut du fichier.</p>
-
-    <div class="grid">
-      <div class="card"><h3>Un son propre à fort volume</h3><p>Un fichier très compressé (128 kbps, extrait d'une vidéo) sonne creux, avec des aigus métalliques et des basses sans impact dès que le volume monte.</p></div>
-      <div class="card"><h3>Des transitions nettes</h3><p>Des hi-hats et des transitoires bien définis aident à caler les mix et à repérer les kicks et les breaks à l'oreille.</p></div>
-      <div class="card"><h3>Des fichiers fiables</h3><p>Des tags corrects, une pochette et un débit constant : le logiciel analyse plus précisément le BPM et la tonalité, et la bibliothèque reste facile à trier.</p></div>
+    <div class="eyebrow">En bref</div>
+    <h2>L'essentiel en une minute</h2>
+    <p class="lead">Un bon son commence par un bon fichier source. Un fichier de mauvaise qualité le reste, quel que soit le format dans lequel on le convertit ensuite.</p>
+    <div class="brief-links">
+      <a href="#pourquoi">Pourquoi c'est important →</a>
+      <a href="#pieges">Attention aux convertisseurs YouTube / Spotify →</a>
     </div>
 
-    <h3 style="margin:32px 0 12px">Pourquoi le MP3 320 kbps est un bon choix</h3>
-    <ol class="steps">
-      <li><p><strong>Compatible partout.</strong> Clés USB pour CDJ, platines, contrôleurs et logiciels de DJ le lisent sans problème. Le FLAC, lui, n'est pas reconnu par tous les lecteurs.</p></li>
-      <li><p><strong>Un très bon rendu.</strong> À 320&nbsp;kbps, la différence avec le FLAC est très difficile à entendre en conditions réelles, en club comme en soirée, même sur un bon système.</p></li>
-      <li><p><strong>Léger.</strong> Un MP3 320 pèse environ trois à quatre fois moins qu'un FLAC : plus de morceaux sur une clé, chargement rapide, bibliothèque plus simple à sauvegarder.</p></li>
-      <li><p><strong>Stable.</strong> Le débit constant (CBR) est prévisible pour les lecteurs et évite les surprises d'analyse avec les débits variables.</p></li>
-    </ol>
-
-    <div class="tip">
-      <p><strong>La bonne méthode.</strong> Gardez la meilleure source possible (FLAC ou WAV), puis convertissez-la une seule fois en MP3 320 pour la clé. Un MP3 issu d'un fichier déjà compressé ne retrouvera jamais la qualité perdue&nbsp;: c'est pourquoi la suite de cette page part toujours de fichiers sans perte.</p>
+    <div class="brief">
+      <div class="card">
+        <h3><span class="num">1</span>Trouver des sons</h3>
+        <dl>
+          <dt><a href="#antra">Antra</a></dt>
+          <dd>Collez un lien Spotify, Deezer, Tidal… et récupérez le morceau en FLAC sans perte.</dd>
+          <dt><a href="#soulseek">Soulseek</a></dt>
+          <dd>Réseau de partage entre particuliers, idéal pour les titres rares. Formats variables, à vérifier.</dd>
+          <dt><a href="#soundcloud">Free DL SoundCloud</a></dt>
+          <dd>Morceaux offerts par les artistes, souvent en WAV. Parfait pour les edits et remixes.</dd>
+        </dl>
+        <a class="more" href="#trouver">Détails des sources →</a>
+      </div>
+      <div class="card">
+        <h3><span class="num">2</span>Choisir le format</h3>
+        <dl>
+          <dt>FLAC</dt>
+          <dd>Sans perte et compressé. Idéal comme source à archiver, presque jamais utile pour mixer.</dd>
+          <dt>WAV</dt>
+          <dd>Sans perte, non compressé, très lourd. Pour les très gros systèmes son bien réglés, ou si vous modifiez beaucoup le tempo.</dd>
+          <dt>MP3 320 kbps</dt>
+          <dd>Léger et lu partout. Suffisant dans la grande majorité des cas.</dd>
+        </dl>
+        <a class="more" href="#formats">Comparer les formats →</a>
+      </div>
+      <div class="card">
+        <h3><span class="num">3</span>Convertir</h3>
+        <dl>
+          <dt>Convertisseur audio</dt>
+          <dd>Application gratuite pour Windows et Mac. Elle transforme un ZIP, un dossier ou un fichier en MP3 320 ou en WAV.</dd>
+          <dt>Tags automatiques</dt>
+          <dd>Complète l'artiste, le genre et la pochette depuis SoundCloud.</dd>
+          <dt>Hors ligne</dt>
+          <dd>Tout se passe sur votre ordinateur, rien n'est envoyé sur un serveur.</dd>
+        </dl>
+        <a class="more" href="#convertir">Utiliser le convertisseur →</a>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="antra">
+<!-- ============ 1. POURQUOI ============ -->
+<section id="pourquoi">
   <div class="wrap">
-    <div class="eyebrow">Deuxième partie</div>
-    <h2>Antra, c'est quoi&nbsp;?</h2>
-    <p class="lead"><a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">Antra</a> est un site web gratuit. Vous y collez le lien d'un morceau ou d'un album, il retrouve la source de meilleure qualité disponible et vous remet le fichier audio. Il n'y a rien à installer.</p>
+    <div class="eyebrow">Partie 1</div>
+    <h2>Pourquoi la qualité du son compte</h2>
+    <p class="lead">Sur un téléphone, un casque bas de gamme ou une petite enceinte Bluetooth, un fichier médiocre passe inaperçu. Sur de bonnes enceintes, et encore plus sur une sono de club, le volume et la précision du système font ressortir chaque défaut.</p>
 
     <div class="grid">
-      <div class="card"><h3>Un lien suffit</h3><p>Antra accepte les liens de six plateformes et cherche la meilleure version parmi elles.</p></div>
-      <div class="card"><h3>Sans perte par défaut</h3><p>Le fichier est livré en FLAC, jusqu'à 24 bits / 192 kHz, soit une qualité égale ou supérieure au CD.</p></div>
-      <div class="card"><h3>D'autres formats au choix</h3><p>ALAC pour l'écosystème Apple, ou des formats compressés&nbsp;: AAC 256 kbps et MP3 320 kbps.</p></div>
+      <div class="card"><h3>Des aigus qui « bavent »</h3><p>Sur un fichier trop compressé, les cymbales et les hi-hats deviennent métalliques et flous, comme un souffle mouillé. C'est le premier défaut que l'on entend.</p></div>
+      <div class="card"><h3>Des basses sans impact</h3><p>Le kick perd son attaque, les basses deviennent molles. Sur un gros caisson, la différence avec un bon fichier se sent physiquement.</p></div>
+      <div class="card"><h3>Un son plat</h3><p>L'espace stéréo se rétrécit, les réverbes et les queues de son deviennent granuleuses. Le morceau manque de profondeur.</p></div>
     </div>
 
-    <div class="tip">
-      <p><strong>Pourquoi convertir ensuite&nbsp;?</strong> Un album en FLAC Hi-Res pèse souvent plus d'un gigaoctet, et tous les autoradios, enceintes ou logiciels de DJ ne le lisent pas. Un MP3 320&nbsp;kbps est environ cinq à dix fois plus léger et fonctionne partout.</p>
-    </div>
+    <h3 class="sub">Pour un DJ, c'est encore plus visible</h3>
+    <ol class="steps">
+      <li><p><strong>Les transitions trahissent les mauvais fichiers.</strong> En enchaînant un morceau propre avec un morceau de mauvaise qualité, la chute de qualité s'entend immédiatement, même pour un public non averti.</p></li>
+      <li><p><strong>Les effets amplifient les défauts.</strong> Changer le tempo avec le key lock, pousser un EQ ou ajouter un filtre fait ressortir les artefacts de compression.</p></li>
+      <li><p><strong>Le volume ne pardonne pas.</strong> Un système de club joue fort et reproduit tout le spectre. Ce qui était caché sur une enceinte de salon devient évident.</p></li>
+      <li><p><strong>Une question de crédibilité.</strong> Les ingénieurs du son et les organisateurs remarquent vite un DJ qui joue des fichiers dégradés.</p></li>
+    </ol>
   </div>
 </section>
 
-<section id="archive">
+<!-- ============ 2. PIÈGES ============ -->
+<section id="pieges">
   <div class="wrap">
-    <div class="eyebrow">Troisième partie</div>
-    <h2>Récupérer une archive sur Antra</h2>
-    <p class="lead">Quelques clics dans le navigateur suffisent.</p>
-    <ol class="steps">
-      <li><p><strong>Copiez le lien</strong> de la playlist ou du morceau depuis Spotify, Apple Music, Amazon Music, Tidal, Qobuz ou Deezer (menu <em>Partager</em> → <em>Copier le lien</em>).</p></li>
-      <li><p><strong>Ouvrez <a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">antra.hoshi.cfd</a></strong> , cliquez sur <strong>Enter</strong>, puis connectez-vous (<strong>Log in</strong>) ou créez un compte gratuit (<strong>Sign up</strong>).</p></li>
-      <li><p><strong>Collez le lien</strong> et validez. Antra affiche la liste des pistes et la qualité trouvée pour chacune.</p></li>
-      <li><p><strong>Gardez le format FLAC</strong> et lancez le téléchargement. Convertisseur audio se charge de la conversion, inutile de choisir MP3 ici.</p></li>
-      <li><p><strong>Enregistrez l'archive</strong> <code>.zip</code> proposée par le navigateur, par exemple dans <em>Téléchargements</em>. Il n'est pas nécessaire de la décompresser.</p></li>
-    </ol>
+    <div class="eyebrow">Partie 2</div>
+    <h2>Le piège des sites de téléchargement YouTube, SoundCloud et Spotify</h2>
+    <p class="lead">Les sites et applications qui « téléchargent » un lien YouTube, SoundCloud ou Spotify annoncent souvent du MP3 320&nbsp;kbps, voire du WAV. En réalité, ils ne peuvent pas donner mieux que ce que la plateforme diffuse en streaming.</p>
+
+    <div class="grid">
+      <div class="card"><h3>YouTube</h3><p>L'audio est diffusé en AAC ou en Opus compressé, autour de 128 à 160&nbsp;kbps. C'est cette version qui est récupérée.</p></div>
+      <div class="card"><h3>SoundCloud (écoute)</h3><p>Le flux d'écoute est un fichier compressé à faible débit, pas le fichier original de l'artiste. Seul le bouton de téléchargement officiel donne l'original.</p></div>
+      <div class="card"><h3>Spotify</h3><p>Beaucoup de « téléchargeurs Spotify » vont en réalité chercher le morceau sur YouTube et récupèrent donc la version YouTube, parfois même une autre version du titre.</p></div>
+    </div>
+
+    <h3 class="sub">Un MP3 converti en WAV reste un MP3</h3>
+    <p class="lead" style="margin-bottom:0">La compression MP3 ou AAC supprime définitivement une partie du son. Convertir ce fichier en MP3 320&nbsp;kbps ou en WAV augmente sa taille, mais ne recrée pas ce qui a été supprimé. C'est comme agrandir une photo floue&nbsp;: elle devient plus grande, pas plus nette.</p>
+
     <div class="note">
-      <p><strong>Évitez l'option MP3 d'Antra.</strong> Le fichier obtenu n'est pas forcément un vrai MP3 320&nbsp;kbps&nbsp;: il peut s'agir d'un AAC 256&nbsp;kbps reconverti en MP3 320. Or passer d'un format compressé à un autre dégrade le son, et le débit affiché ne rend pas la qualité perdue. Privilégiez le FLAC, puis laissez Convertisseur audio produire le MP3 à partir de la source sans perte.</p>
+      <p><strong>Un « 320 kbps » ou un « WAV » peut donc cacher un fichier à 128&nbsp;kbps.</strong> Le débit ou le format affiché ne prouve rien sur la qualité réelle.</p>
+    </div>
+    <div class="tip">
+      <p><strong>Vérifier un fichier.</strong> Ouvrez-le dans un logiciel de spectrogramme gratuit comme <a href="https://www.spek.cc/" target="_blank" rel="noopener">Spek</a>. Un vrai fichier sans perte montre du contenu jusqu'à 20&nbsp;kHz et au-delà. Un fichier issu d'un MP3 à 128&nbsp;kbps est coupé net vers 16&nbsp;kHz, quel que soit son format.</p>
     </div>
   </div>
 </section>
 
-<section id="limites">
+<!-- ============ 3. TROUVER ============ -->
+<section id="trouver">
   <div class="wrap">
-    <div class="eyebrow">Quatrième partie</div>
-    <h2>Limites gratuites et accès supporter</h2>
-    <p class="lead">Antra est gratuit, avec un quota par jour. Un soutien sur Patreon donne une clé qui lève ces limites pendant 30 jours.</p>
+    <div class="eyebrow">Partie 3</div>
+    <h2>Où trouver des sons en bonne qualité</h2>
+    <p class="lead">Trois sources complémentaires&nbsp;: les téléchargements gratuits offerts par les artistes sur SoundCloud, le réseau Soulseek, et les sites comme Antra qui récupèrent la version sans perte des plateformes de streaming.</p>
+
+    <!-- SoundCloud -->
+    <div class="source" id="soundcloud">
+      <span class="tag">Gratuit · souvent WAV</span>
+      <h3>Les free downloads sur SoundCloud</h3>
+      <p class="lead">Beaucoup d'artistes, surtout pour les remixes, edits et bootlegs introuvables sur les plateformes de streaming, offrent leurs morceaux en téléchargement gratuit.</p>
+
+      <div class="grid">
+        <div class="card"><h3>Le fichier d'origine</h3><p>Le téléchargement donne le fichier que l'artiste a mis en ligne, souvent un WAV, un AIFF ou un FLAC, et non le flux compressé de l'écoute en ligne.</p></div>
+        <div class="card"><h3>Offert par l'artiste</h3><p>C'est l'artiste qui active le téléchargement sur son morceau. Un compte SoundCloud gratuit suffit pour en profiter.</p></div>
+        <div class="card"><h3>Des titres absents d'ailleurs</h3><p>Ces morceaux ne sont souvent sur aucune autre plateforme, donc introuvables avec Antra.</p></div>
+      </div>
+
+      <h3 class="sub">Télécharger un morceau</h3>
+      <ol class="steps">
+        <li><p><strong>Repérez les morceaux offerts</strong>&nbsp;: leur titre ou leur description mentionne souvent <em>Free Download</em> ou <em>Free DL</em>.</p></li>
+        <li><p><strong>Téléchargement direct&nbsp;:</strong> connectez-vous à SoundCloud, ouvrez le menu <strong>…</strong> (<em>Plus</em>) sous le morceau et choisissez <strong>Télécharger le fichier</strong>.</p></li>
+        <li><p><strong>Lien externe&nbsp;:</strong> parfois un bouton <em>Free Download</em> ou <em>Buy</em> renvoie vers une page de l'artiste, qui demande en général de le suivre ou de partager le morceau avant de donner le fichier.</p></li>
+      </ol>
+      <div class="note">
+        <p><strong>La qualité dépend de l'artiste.</strong> Si le fichier mis en ligne est déjà un MP3, le convertir à nouveau ne l'améliorera pas&nbsp;: gardez-le tel quel et utilisez l'onglet <strong>Taguer seulement</strong> du convertisseur.</p>
+      </div>
+    </div>
+
+    <!-- Soulseek -->
+    <div class="source" id="soulseek">
+      <span class="tag">Gratuit · formats variables</span>
+      <h3>Soulseek</h3>
+      <p class="lead">Soulseek est un réseau de partage de fichiers entre particuliers, très utilisé par les passionnés de musique et les DJ. Chaque utilisateur partage sa propre bibliothèque, ce qui en fait une mine pour les titres rares, anciens ou underground.</p>
+
+      <div class="grid">
+        <div class="card"><h3>Comment ça marche</h3><p>Vous installez un logiciel client, vous cherchez un titre, et vous le téléchargez directement depuis l'ordinateur d'un autre utilisateur.</p></div>
+        <div class="card"><h3>Formats obtenus</h3><p>Tout dépend de celui qui partage&nbsp;: FLAC, WAV, AIFF, MP3 320 ou MP3 de mauvaise qualité. Les résultats affichent le format et le débit.</p></div>
+        <div class="card"><h3>Un réseau d'échange</h3><p>Les utilisateurs attendent que vous partagiez aussi. Certains refusent les téléchargements aux comptes qui ne partagent rien.</p></div>
+      </div>
+
+      <h3 class="sub">Bien démarrer</h3>
+      <ol class="steps">
+        <li><p><strong>Installez un client</strong>&nbsp;: <a href="https://www.slsknet.org/" target="_blank" rel="noopener">SoulseekQt</a>, le client officiel, ou <a href="https://nicotine-plus.org/" target="_blank" rel="noopener">Nicotine+</a>, une alternative libre.</p></li>
+        <li><p><strong>Créez un compte</strong> au premier lancement en choisissant un nom d'utilisateur et un mot de passe.</p></li>
+        <li><p><strong>Partagez un dossier</strong> de votre musique dans les réglages pour être bien accueilli sur le réseau.</p></li>
+        <li><p><strong>Cherchez un titre</strong> et privilégiez les résultats en <strong>FLAC</strong> ou en <strong>WAV</strong>, de préférence chez des utilisateurs avec une bonne vitesse et une file d'attente courte.</p></li>
+        <li><p><strong>Vérifiez le fichier</strong> reçu avec un spectrogramme (voir <a href="#pieges">les pièges</a>)&nbsp;: un FLAC partagé peut très bien venir d'un MP3.</p></li>
+      </ol>
+    </div>
+
+    <!-- Antra -->
+    <div class="source" id="antra">
+      <span class="tag">Gratuit avec quota · FLAC</span>
+      <h3>Antra</h3>
+      <p class="lead"><a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">Antra</a> est un site web. Vous y collez le lien d'un morceau ou d'une playlist Spotify, Apple Music, Amazon Music, Tidal, Qobuz ou Deezer&nbsp;: il retrouve la version sans perte disponible sur ces services et vous la remet sous forme de fichier.</p>
+
+      <div class="grid">
+        <div class="card"><h3>Un lien suffit</h3><p>Pas besoin d'abonnement aux plateformes. Antra se charge de trouver la source.</p></div>
+        <div class="card"><h3>FLAC par défaut</h3><p>En qualité CD (16 bits / 44,1&nbsp;kHz) ou supérieure, jusqu'à 24 bits / 192&nbsp;kHz selon la source.</p></div>
+        <div class="card"><h3>Livré en archive</h3><p>Une playlist arrive sous forme d'archive <code>.zip</code>, que le convertisseur lit directement.</p></div>
+      </div>
+
+      <h3 class="sub">Récupérer une archive</h3>
+      <ol class="steps">
+        <li><p><strong>Copiez le lien</strong> de la playlist ou du morceau depuis Spotify, Apple Music, Amazon Music, Tidal, Qobuz ou Deezer (menu <em>Partager</em> → <em>Copier le lien</em>).</p></li>
+        <li><p><strong>Ouvrez <a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">antra.hoshi.cfd</a></strong>, cliquez sur <strong>Enter</strong>, puis connectez-vous (<strong>Log in</strong>) ou créez un compte gratuit (<strong>Sign up</strong>).</p></li>
+        <li><p><strong>Collez le lien</strong> et validez. Antra affiche la liste des pistes et la qualité trouvée pour chacune.</p></li>
+        <li><p><strong>Gardez le format FLAC</strong> et lancez le téléchargement.</p></li>
+        <li><p><strong>Enregistrez l'archive</strong> <code>.zip</code> proposée par le navigateur. Inutile de la décompresser.</p></li>
+      </ol>
+      <div class="note">
+        <p><strong>Évitez l'option MP3 d'Antra.</strong> Le fichier obtenu n'est pas forcément un vrai MP3 320&nbsp;kbps&nbsp;: il peut s'agir d'un AAC 256&nbsp;kbps reconverti en MP3 320. Or passer d'un format compressé à un autre dégrade le son. Prenez le FLAC et laissez le convertisseur produire le MP3 à partir de la source sans perte.</p>
+      </div>
+
+      <h3 class="sub" id="limites">Limites gratuites et accès supporter</h3>
+      <div class="grid">
+        <div class="card">
+          <h3>Compte gratuit</h3>
+          <ul class="plan">
+            <li>Par jour&nbsp;: <strong>5 playlists</strong>, <strong>10 albums</strong> et <strong>100 morceaux</strong> à l'unité</li>
+            <li><strong>100 pistes maximum</strong> par téléchargement&nbsp;: une playlist plus longue se récupère en plusieurs archives</li>
+            <li>Un seul téléchargement à la fois, à vitesse normale</li>
+            <li>Source&nbsp;: la plateforme du lien collé, ou Amazon Music à défaut</li>
+          </ul>
+        </div>
+        <div class="card featured">
+          <h3>Clé supporter <span class="grad">30 jours</span></h3>
+          <ul class="plan">
+            <li><strong>Téléchargements illimités</strong>, sans quota journalier</li>
+            <li><strong>Vitesse doublée</strong> et accès prioritaire</li>
+            <li><strong>2 téléchargements simultanés</strong></li>
+            <li><strong>Meilleure source toutes plateformes</strong>&nbsp;: Antra cherche le meilleur master sur l'ensemble des services, pas seulement celui du lien</li>
+          </ul>
+        </div>
+      </div>
+      <ol class="steps" style="margin-top:14px">
+        <li><p><strong>Soutenez Antra</strong> sur <a href="https://www.patreon.com/AntraVerse" target="_blank" rel="noopener">sa page Patreon</a>, qui affiche les formules et les tarifs en vigueur.</p></li>
+        <li><p><strong>Récupérez la clé</strong> de 30 jours que vous recevez en retour.</p></li>
+        <li><p><strong>Dans Antra</strong>, cliquez sur <strong>I have a key</strong>, collez la clé puis cliquez sur <strong>Activate</strong>. La clé s'active sur ce navigateur uniquement.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. FORMATS ============ -->
+<section id="formats">
+  <div class="wrap">
+    <div class="eyebrow">Partie 4</div>
+    <h2>FLAC, WAV ou MP3 320&nbsp;: lequel choisir&nbsp;?</h2>
+    <p class="lead">Les trois formats peuvent sonner très bien, à condition de partir d'une bonne source. Ce qui change, c'est la taille des fichiers, la compatibilité avec le matériel, et l'usage que vous en faites.</p>
 
     <div class="grid">
       <div class="card">
-        <h3>Compte gratuit</h3>
-        <ul class="plan">
-          <li>Par jour&nbsp;: <strong>5 playlists</strong>, <strong>10 albums</strong> et <strong>100 morceaux</strong> à l'unité</li>
-          <li><strong>100 pistes maximum</strong> par téléchargement&nbsp;: une playlist plus longue se récupère en plusieurs archives</li>
-          <li>Un seul téléchargement à la fois, à vitesse normale</li>
-          <li>Source&nbsp;: la plateforme du lien collé, ou Amazon Music à défaut</li>
-        </ul>
+        <span class="tag">Presque jamais pour mixer</span>
+        <h3>FLAC</h3>
+        <p>Sans perte, mais compressé&nbsp;: environ deux fois plus léger qu'un WAV pour le même son. Parfait comme source à garder pour reconvertir plus tard. Pour un DJ, il n'apporte pratiquement rien par rapport au WAV, et il n'est pas lu par tous les lecteurs, notamment certains CDJ plus anciens.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Gros systèmes son</span>
+        <h3>WAV</h3>
+        <p>Sans perte et non compressé, lu par tous les lecteurs et logiciels de DJ. Utile si vous jouez sur de très gros systèmes son bien réglés, où le moindre détail compte. En contrepartie, les fichiers sont très lourds.</p>
       </div>
       <div class="card featured">
-        <h3>Clé supporter <span class="grad">30 jours</span></h3>
-        <ul class="plan">
-          <li><strong>Téléchargements illimités</strong>, sans quota journalier</li>
-          <li><strong>Vitesse doublée</strong> et accès prioritaire</li>
-          <li><strong>2 téléchargements simultanés</strong></li>
-          <li><strong>Meilleure source toutes plateformes</strong>&nbsp;: Antra cherche le meilleur master sur l'ensemble des services, pas seulement celui du lien</li>
-        </ul>
+        <span class="tag">Suffisant la plupart du temps</span>
+        <h3>MP3 320 kbps</h3>
+        <p>Compressé, mais à ce débit la différence avec un fichier sans perte est très difficile à entendre en conditions réelles. Léger, lu partout, idéal pour une clé USB. À condition qu'il soit converti depuis une source sans perte.</p>
       </div>
     </div>
 
-    <h3 style="margin:32px 0 12px">Obtenir et activer une clé</h3>
-    <ol class="steps">
-      <li><p><strong>Soutenez Antra</strong> sur <a href="https://www.patreon.com/AntraVerse" target="_blank" rel="noopener">sa page Patreon</a>. Le paiement se fait sur Patreon, qui affiche les formules et les tarifs en vigueur.</p></li>
-      <li><p><strong>Récupérez la clé</strong> de 30 jours que vous recevez en retour.</p></li>
-      <li><p><strong>Dans Antra</strong>, cliquez sur <strong>I have a key</strong>, collez la clé puis cliquez sur <strong>Activate</strong>.</p></li>
-    </ol>
-    <div class="tip">
-      <p><strong>À savoir.</strong> La clé s'active sur le navigateur où vous la collez&nbsp;: sur un autre appareil ou un autre navigateur, il faut la saisir à nouveau.</p>
+    <h3 class="sub">Différences de taille</h3>
+    <div class="table-scroll" style="margin-top:0">
+      <table>
+        <thead>
+          <tr><th>Format</th><th class="num-col">Taille relative</th><th class="num-col">Morceau de 5 min</th><th class="num-col">500 morceaux</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>MP3 320 kbps</td><td class="num-col"><strong>×1</strong></td><td class="num-col">≈ 12 Mo</td><td class="num-col">≈ 6 Go</td></tr>
+          <tr><td>FLAC 16 bits / 44,1 kHz</td><td class="num-col"><strong>≈ ×2,5</strong></td><td class="num-col">≈ 30 Mo</td><td class="num-col">≈ 15 Go</td></tr>
+          <tr><td>WAV 16 bits / 44,1 kHz</td><td class="num-col"><strong>≈ ×4,4</strong></td><td class="num-col">≈ 53 Mo</td><td class="num-col">≈ 26 Go</td></tr>
+          <tr><td>WAV 24 bits / 96 kHz</td><td class="num-col"><strong>≈ ×14</strong></td><td class="num-col">≈ 173 Mo</td><td class="num-col">≈ 86 Go</td></tr>
+        </tbody>
+      </table>
     </div>
-  </div>
-</section>
-
-<section id="soundcloud">
-  <div class="wrap">
-    <div class="eyebrow">Cinquième partie</div>
-    <h2>Les free downloads sur SoundCloud</h2>
-    <p class="lead">Beaucoup d'artistes, surtout pour les remixes, edits et bootlegs introuvables sur les plateformes de streaming, offrent leurs morceaux en téléchargement gratuit sur SoundCloud. C'est une autre façon d'obtenir des sons de bonne qualité.</p>
+    <h3 class="sub">Et quand on modifie le tempo ou le pitch&nbsp;?</h3>
+    <p class="lead" style="margin-bottom:18px">Pour caler deux morceaux, on accélère ou on ralentit souvent l'un d'eux. Avec le <strong>Master Tempo</strong> (ou <em>key lock</em>), le lecteur change la vitesse sans changer la tonalité. Il doit pour cela découper et recomposer le son en temps réel, et c'est là que le format fait une différence.</p>
 
     <div class="grid">
-      <div class="card"><h3>Le fichier d'origine</h3><p>Le téléchargement donne le fichier que l'artiste a mis en ligne, souvent un WAV, un AIFF ou un FLAC, et non le flux compressé de l'écoute en ligne.</p></div>
-      <div class="card"><h3>Offert par l'artiste</h3><p>C'est l'artiste qui active le téléchargement sur son morceau. Un compte SoundCloud gratuit suffit pour en profiter.</p></div>
-      <div class="card"><h3>Des titres absents d'ailleurs</h3><p>Ces morceaux ne sont souvent sur aucune autre plateforme, donc introuvables avec Antra.</p></div>
+      <div class="card">
+        <h3>Avec un MP3</h3>
+        <p>L'algorithme travaille sur un son qui contient déjà les petits défauts de la compression. En l'étirant, il les amplifie&nbsp;: aigus plus métalliques, attaques du kick et des percussions moins nettes, son légèrement « chorus » ou granuleux.</p>
+      </div>
+      <div class="card">
+        <h3>Avec un WAV (ou un FLAC)</h3>
+        <p>L'algorithme part d'un signal complet et propre. Le résultat reste plus naturel, et les défauts du time-stretching apparaissent plus tard, pour des écarts de tempo plus grands.</p>
+      </div>
+      <div class="card">
+        <h3>En pratique</h3>
+        <p>Pour de petits ajustements (moins de 6&nbsp;% d'écart de tempo), un bon MP3 320 tient bien. Si vous jouez souvent des morceaux loin de leur tempo d'origine, avec le Master Tempo activé, préférez le WAV.</p>
+      </div>
     </div>
-
-    <h3 style="margin:32px 0 12px">Télécharger un morceau</h3>
-    <ol class="steps">
-      <li><p><strong>Repérez les morceaux offerts</strong>&nbsp;: leur titre ou leur description mentionne souvent <em>Free Download</em> ou <em>Free DL</em>.</p></li>
-      <li><p><strong>Téléchargement direct&nbsp;:</strong> connectez-vous à SoundCloud, ouvrez le menu <strong>…</strong> (<em>Plus</em>) sous le morceau et choisissez <strong>Télécharger le fichier</strong>.</p></li>
-      <li><p><strong>Lien externe&nbsp;:</strong> parfois un bouton <em>Free Download</em> ou <em>Buy</em> renvoie vers une page de l'artiste, qui demande en général de le suivre ou de partager le morceau avant de donner le fichier.</p></li>
-      <li><p><strong>Convertissez</strong> le fichier ou le dossier obtenu avec Convertisseur audio, comme une archive d'Antra (voir la partie suivante).</p></li>
-    </ol>
 
     <div class="tip">
-      <p><strong>Pratique avec Convertisseur audio.</strong> Ces fichiers arrivent souvent sans artiste ni pochette. L'option <strong>Taguer depuis SoundCloud</strong> les complète, et ignore les mentions comme <code>[FREE DL]</code> dans le nom du fichier pour retrouver le bon morceau.</p>
-    </div>
-    <div class="note">
-      <p><strong>La qualité dépend de l'artiste.</strong> Si le fichier mis en ligne est déjà un MP3, le convertir à nouveau ne l'améliorera pas&nbsp;: gardez-le tel quel et utilisez plutôt l'onglet <strong>Taguer seulement</strong>.</p>
+      <p><strong>La bonne méthode.</strong> Gardez vos fichiers sans perte (FLAC ou WAV) comme archive, puis créez à partir d'eux la version dont vous avez besoin&nbsp;: MP3 320 pour la clé de tous les jours, WAV pour les grandes dates. Ne convertissez jamais un fichier compressé vers un autre format compressé.</p>
     </div>
   </div>
 </section>
 
+<!-- ============ 5. CONVERTIR ============ -->
 <section id="convertir">
   <div class="wrap">
-    <div class="eyebrow">Sixième partie</div>
-    <h2>Convertir l'archive avec Convertisseur audio</h2>
-    <p class="lead">L'application tourne sur votre ordinateur, dans sa propre fenêtre. Vos fichiers ne sont envoyés sur aucun serveur.</p>
+    <div class="eyebrow">Partie 5</div>
+    <h2>Convertir avec Convertisseur audio</h2>
+    <p class="lead">Convertisseur audio transforme vos fichiers en <strong>MP3 320&nbsp;kbps</strong> ou en <strong>WAV</strong>, et complète les tags manquants. L'application tourne sur votre ordinateur, dans sa propre fenêtre&nbsp;: vos fichiers ne sont envoyés sur aucun serveur.</p>
 
     <div class="split">
       <div>
@@ -344,15 +522,24 @@
           </ul>
         </div>
 
-        <h3 style="margin:32px 0 12px">Convertir l'archive</h3>
+        <h3 class="sub">Convertir vos fichiers</h3>
         <ol class="steps">
           <li><p><strong>Lancez <code>SoundConverter</code>.</strong> La fenêtre s'ouvre après quelques secondes.</p></li>
-          <li><p><strong>Source&nbsp;:</strong> cliquez sur <strong>Fichier</strong> et sélectionnez l'archive <code>.zip</code> d'Antra, ou glissez-la simplement dans la fenêtre.</p></li>
-          <li><p><strong>Destination&nbsp;:</strong> choisissez un dossier, ou activez <strong>Créer un nouveau dossier</strong>. <code>Album.zip</code> donnera alors un dossier <code>Album_mp3</code> placé à côté de l'archive.</p></li>
+          <li><p><strong>Source&nbsp;:</strong> cliquez sur <strong>Fichier</strong> pour une archive <code>.zip</code> d'Antra ou un seul morceau, ou sur <strong>Dossier</strong> pour un dossier de fichiers (Soulseek, SoundCloud). Vous pouvez aussi les glisser dans la fenêtre.</p></li>
+          <li><p><strong>Destination&nbsp;:</strong> choisissez un dossier, ou activez <strong>Créer un nouveau dossier</strong>. <code>Album.zip</code> donnera alors un dossier <code>Album_mp3</code> ou <code>Album_wav</code> placé à côté de la source.</p></li>
+          <li><p><strong>Format de sortie&nbsp;:</strong> choisissez <strong>MP3</strong> (320&nbsp;kbps) ou <strong>WAV</strong>. Le WAV garde la résolution de la source (24 bits si elle est en 24 bits ou plus, sinon 16 bits). Le choix est mémorisé.</p></li>
           <li><p><strong>Option&nbsp;:</strong> activez <strong>Taguer depuis SoundCloud</strong> pour compléter l'artiste, le genre et la pochette manquants. Les tags déjà présents ne sont jamais écrasés.</p></li>
           <li><p><strong>Cliquez sur Convertir.</strong> La progression et le journal s'affichent piste par piste. <strong>Annuler</strong> arrête tout en conservant les fichiers déjà convertis.</p></li>
-          <li><p><strong>À la fin</strong>, le récapitulatif indique les fichiers convertis, en échec et tagués. <strong>Ouvrir le dossier</strong> affiche vos MP3, <strong>Réessayer les échecs</strong> relance uniquement ceux qui ont échoué.</p></li>
+          <li><p><strong>À la fin</strong>, le récapitulatif indique les fichiers convertis, en échec et tagués. <strong>Ouvrir le dossier</strong> affiche vos fichiers, <strong>Réessayer les échecs</strong> relance uniquement ceux qui ont échoué.</p></li>
         </ol>
+
+        <div class="tip">
+          <p><strong>Des WAV bien tagués.</strong> Les tags et la pochette des WAV sont écrits dans un bloc ID3, que lisent les logiciels de DJ comme rekordbox ou Serato.</p>
+          <p><strong>Déjà des MP3 ou des WAV&nbsp;?</strong> L'onglet <strong>Taguer seulement</strong> complète leurs tags sans rien convertir.</p>
+        </div>
+        <div class="note">
+          <p><strong>Le convertisseur ne rend pas la qualité perdue.</strong> Un MP3 converti en WAV reste un son de qualité MP3. Partez toujours d'une source sans perte (FLAC, WAV, AIFF).</p>
+        </div>
       </div>
 
       <div class="shot">
@@ -375,11 +562,11 @@
     </details>
     <details>
       <summary>Quels formats sont acceptés&nbsp;?</summary>
-      <p>FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack et les autres formats que FFmpeg sait lire. Les archives ALAC d'Antra fonctionnent donc aussi.</p>
+      <p>FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack et les autres formats que FFmpeg sait lire.</p>
     </details>
     <details>
       <summary>Les tags et la pochette d'origine sont-ils conservés&nbsp;?</summary>
-      <p>Oui, ils sont recopiés dans le MP3. L'option SoundCloud ne fait que compléter ce qui manque.</p>
+      <p>Oui, ils sont recopiés dans le fichier converti. L'option SoundCloud ne fait que compléter ce qui manque.</p>
     </details>
     <details>
       <summary>Faut-il une connexion Internet&nbsp;?</summary>
@@ -387,11 +574,7 @@
     </details>
     <details>
       <summary>Que se passe-t-il si deux pistes portent le même nom&nbsp;?</summary>
-      <p>Les suivantes reçoivent un numéro&nbsp;: <code>01.mp3</code>, <code>01_2.mp3</code>, <code>01_3.mp3</code>. En revanche, les MP3 du même nom déjà présents dans le dossier de sortie sont écrasés.</p>
-    </details>
-    <details>
-      <summary>J'ai déjà des MP3, puis-je seulement les taguer&nbsp;?</summary>
-      <p>Oui, l'onglet <strong>Taguer seulement</strong> complète les tags d'un dossier ou d'un fichier MP3 sans rien convertir.</p>
+      <p>Les suivantes reçoivent un numéro&nbsp;: <code>01.mp3</code>, <code>01_2.mp3</code>, <code>01_3.mp3</code>. En revanche, les fichiers du même nom déjà présents dans le dossier de sortie sont écrasés.</p>
     </details>
     <details>
       <summary>Peut-on changer la langue ou le thème&nbsp;?</summary>
@@ -403,7 +586,7 @@
 <footer>
   <div class="wrap">
     <p>Le code source de Convertisseur audio est <a href="https://github.com/MatveiMKS/FlaccToMp3">disponible sur GitHub</a>. La conversion utilise FFmpeg.</p>
-    <p>Ce site n'est pas affilié à Antra ni aux plateformes de streaming citées.</p>
+    <p>Ce site n'est pas affilié à Antra, Soulseek, SoundCloud ni aux plateformes de streaming citées.</p>
   </div>
 </footer>
 
