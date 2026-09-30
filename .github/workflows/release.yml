@@ -1,9 +1,9 @@
-name: Build Windows exe
+name: Build release
 
 on:
   push:
     tags: ['v*']
-  # Manual run: builds the exe as a downloadable artifact, without creating a release
+  # Manual run: builds the apps as downloadable artifacts, without creating a release
   workflow_dispatch:
 
 permissions:
@@ -11,9 +11,11 @@ permissions:
 
 env:
   FFMPEG_VERSION: '8.1.2'
+  # Its wheels carry a static FFmpeg for each Mac architecture
+  IMAGEIO_FFMPEG_VERSION: '0.6.0'
 
 jobs:
-  build:
+  windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,22 +58,92 @@ jobs:
             taskkill /F /T /PID $app.Id
           }
 
+      - name: Collect release files
+        shell: pwsh
+        run: Copy-Item FFmpeg-LICENSE.txt dist/
+
       - uses: actions/upload-artifact@v4
         with:
           name: MP3Converter
-          path: dist/MP3Converter.exe
+          path: |
+            dist/MP3Converter.exe
+            dist/FFmpeg-LICENSE.txt
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller "imageio-ffmpeg==$IMAGEIO_FFMPEG_VERSION"
+
+      - name: Get FFmpeg (static build)
+        run: |
+          cp "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ffmpeg
+          chmod +x ffmpeg
+          ./ffmpeg -hide_banner -encoders | grep libmp3lame
+
+      - name: Build app
+        run: pyinstaller --noconfirm --windowed --name MP3Converter --osx-bundle-identifier com.mp3converter.app --add-data "templates:templates" --add-data "static:static" --add-binary "ffmpeg:." app.py
+
+      - name: Smoke test
+        run: |
+          # The FFmpeg inside the bundle still runs after PyInstaller re-signed it
+          "$(find dist/MP3Converter.app -type f -name ffmpeg | head -n 1)" -version
+          PORT=5071 dist/MP3Converter.app/Contents/MacOS/MP3Converter &
+          app=$!
+          ok=
+          for i in $(seq 30); do
+            sleep 2
+            if curl -fs http://127.0.0.1:5071/ | grep -q 'MP3 Converter'; then ok=1; break; fi
+          done
+          kill $app || true
+          [ -n "$ok" ] || { echo 'Packaged app did not serve the page'; exit 1; }
+
+      - name: Zip app
+        # ditto keeps the symlinks and the signature of the bundle intact
+        run: ditto -c -k --sequesterRsrc --keepParent dist/MP3Converter.app dist/MP3Converter-macOS-${{ matrix.arch }}.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MP3Converter-macOS-${{ matrix.arch }}
+          path: dist/MP3Converter-macOS-${{ matrix.arch }}.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          $notes = @"
-          Download **MP3Converter.exe** and double-click it. Close its window to quit.
+          cat > notes.md <<EOF
+          **Windows**: download **MP3Converter.exe** and double-click it. Windows may show a SmartScreen warning because the app is unsigned: click **More info**, then **Run anyway**.
 
-          Windows may show a SmartScreen warning because the app is unsigned: click **More info**, then **Run anyway**.
+          **macOS**: download **MP3Converter-macOS-arm64.zip** (Apple Silicon: M1 and later) or **MP3Converter-macOS-x86_64.zip** (Intel), unzip it and open **MP3Converter**. The app is unsigned, so macOS blocks the first launch: open **System Settings > Privacy & Security**, scroll down and click **Open Anyway**.
 
-          Includes FFmpeg $env:FFMPEG_VERSION (GPL, see FFmpeg-LICENSE.txt).
-          "@
-          gh release create $env:GITHUB_REF_NAME dist/MP3Converter.exe FFmpeg-LICENSE.txt --title $env:GITHUB_REF_NAME --notes $notes --generate-notes
+          Close the window to quit.
+
+          Includes FFmpeg (GPL, see FFmpeg-LICENSE.txt): $FFMPEG_VERSION on Windows, the build from imageio-ffmpeg $IMAGEIO_FFMPEG_VERSION on macOS.
+          EOF
+          gh release create "$GITHUB_REF_NAME" release/* --title "$GITHUB_REF_NAME" --notes-file notes.md --generate-notes

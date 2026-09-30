@@ -17,6 +17,8 @@ from tagger import tag_mp3, describe_tag_result
 
 # When packaged with PyInstaller, bundled files are unpacked to sys._MEIPASS
 FROZEN = getattr(sys, 'frozen', False)
+WINDOWS = os.name == 'nt'
+MAC = sys.platform == 'darwin'
 BASE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
 # The packaged app has no console: give libraries that print something to write to
@@ -26,13 +28,14 @@ if sys.stderr is None:
     sys.stderr = open(os.devnull, 'w')
 
 # Prefer an FFmpeg shipped alongside the app, fall back to the one on PATH
-BUNDLED_FFMPEG = os.path.join(BASE_DIR, 'ffmpeg.exe')
+BUNDLED_FFMPEG = os.path.join(BASE_DIR, 'ffmpeg.exe' if WINDOWS else 'ffmpeg')
 FFMPEG = BUNDLED_FFMPEG if os.path.isfile(BUNDLED_FFMPEG) else shutil.which('ffmpeg')
 # Keeps FFmpeg from flashing a console window when the app itself has none
 NO_WINDOW = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 
 APP_NAME = 'MP3 Converter'
-DEFAULT_PORT = 5000
+# macOS keeps port 5000 for its AirPlay Receiver
+DEFAULT_PORT = 5050 if MAC else 5000
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, 'templates'), static_folder=os.path.join(BASE_DIR, 'static'))
 
@@ -86,11 +89,23 @@ def sse(**event):
 def index():
     return render_template('index.html', extensions=AUDIO_EXTENSIONS + MP3_EXTENSIONS + ('.zip',))
 
+def mac_dialog(patterns):
+    """Native macOS picker for browser mode: tkinter only works on the main thread there."""
+    if patterns:
+        types = ', '.join(f'"{pattern[2:]}"' for pattern in patterns)
+        script = f'POSIX path of (choose file of type {{{types}}})'
+    else:
+        script = 'POSIX path of (choose folder)'
+    # Cancelling makes osascript fail with nothing on stdout
+    result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
+    return result.stdout.strip()
+
 @app.route('/browse')
 def browse():
     kind = request.args.get('type')
     file_types = {
-        'file': ('Audio & ZIP', ['*.zip'] + ['*' + ext for ext in AUDIO_EXTENSIONS]),
+        # pywebview only accepts letters, digits and spaces in the description
+        'file': ('Audio and ZIP', ['*.zip'] + ['*' + ext for ext in AUDIO_EXTENSIONS]),
         'mp3': ('MP3', ['*.mp3'])
     }.get(kind)
 
@@ -101,6 +116,8 @@ def browse():
         else:
             picked = window.create_file_dialog(webview.FileDialog.FOLDER)
         path = picked[0] if picked else ''
+    elif MAC:
+        path = mac_dialog(file_types[1] if file_types else None)
     else:
         import tkinter as tk
         from tkinter import filedialog
@@ -130,7 +147,10 @@ def open_folder():
     path = (request.json or {}).get('path', '')
     ok = os.path.isdir(path)
     if ok:
-        os.startfile(path)
+        if WINDOWS:
+            os.startfile(path)
+        else:
+            subprocess.Popen(['open' if MAC else 'xdg-open', path])
     return jsonify({'ok': ok})
 
 def find_sources(source, extensions, temp_dirs, allow_zip=True):
@@ -298,7 +318,7 @@ def convert():
             return
 
         if not FFMPEG:
-            yield sse(status='error', code='ffmpeg_missing', msg='FFmpeg not found. Ensure it is installed and in your Windows PATH.')
+            yield sse(status='error', code='ffmpeg_missing', msg='FFmpeg not found. Ensure it is installed and in your PATH.')
             return
 
         # Files that would produce the same MP3 (same name in two folders, or song.flac + song.wav) get a number
@@ -468,8 +488,12 @@ def main():
         window = webview.create_window(APP_NAME, url, width=760, height=920, min_size=(420, 560), text_select=True)
         window.events.loaded += on_loaded
         # Not private, so the saved language and theme survive a restart
-        storage = os.path.join(os.environ.get('LOCALAPPDATA') or tempfile.gettempdir(), 'MP3Converter')
-        webview.start(gui='edgechromium', private_mode=False, storage_path=storage)
+        if MAC:
+            data_dir = os.path.expanduser('~/Library/Application Support')
+        else:
+            data_dir = os.environ.get('LOCALAPPDATA') or tempfile.gettempdir()
+        storage = os.path.join(data_dir, 'MP3Converter')
+        webview.start(gui='edgechromium' if WINDOWS else None, private_mode=False, storage_path=storage)
     except Exception:
         window = None
         run_in_browser(url)
