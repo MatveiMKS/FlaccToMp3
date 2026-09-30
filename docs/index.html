@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guide pour un son de qualité</title>
-<meta name="description" content="Trouver des sons en bonne qualité (Antra, Soulseek, SoundCloud), choisir entre FLAC, WAV et MP3 320, et les convertir avec Convertisseur audio.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" sizes="any" href="favicon.ico"><meta name="description" content="Trouver des sons en bonne qualité (Antra, Soulseek, SoundCloud), choisir entre FLAC, WAV et MP3 320, et les convertir avec Convertisseur audio.">
 <style>
   :root {
     --bg: #f6f5fb;
@@ -163,7 +164,7 @@
     width: 100%; height: auto; display: block;
     border-radius: 18px; border: 1px solid var(--border); box-shadow: var(--shadow);
   }
-  .shot { position: sticky; top: 76px; }
+  .shot { max-width: 400px; justify-self: center; }
   @media (max-width: 860px) {
     .split { grid-template-columns: 1fr; }
     .shot { position: static; max-width: 420px; margin: 0 auto; }
@@ -545,7 +546,7 @@
       <div class="shot">
         <picture>
           <source srcset="screenshot-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="screenshot-light.png" width="600" height="898" alt="Fenêtre de Convertisseur audio après la conversion de quatre fichiers FLAC, avec les tags ajoutés depuis SoundCloud">
+          <img src="screenshot-light.png" width="600" height="1373" alt="Fenêtre de Convertisseur audio après la conversion de quatre fichiers FLAC en MP3, avec les tags ajoutés depuis SoundCloud">
         </picture>
       </div>
     </div>
