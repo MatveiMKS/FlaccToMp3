@@ -272,7 +272,7 @@
           <dt>Convertisseur audio</dt>
           <dd>Application gratuite pour Windows et Mac. Elle transforme un ZIP, un dossier ou un fichier en MP3 320 ou en WAV.</dd>
           <dt>Tags automatiques</dt>
-          <dd>Complète l'artiste, le genre et la pochette depuis SoundCloud.</dd>
+          <dd>Complète le titre, l'artiste, le genre et la pochette d'après le nom du fichier et SoundCloud.</dd>
           <dt>Hors ligne</dt>
           <dd>Tout se passe sur votre ordinateur, rien n'est envoyé sur un serveur.</dd>
         </dl>
@@ -480,8 +480,8 @@
     </div>
     <p style="color:var(--muted);font-size:14.5px;margin:8px 0 0">Tailles calculées à partir des débits. Celle du FLAC est une moyenne&nbsp;: elle varie selon la musique.</p>
 
-    <div class="note">
-      <p><strong>Attention aux WAV haute résolution sur CDJ.</strong> Les CDJ lisent le WAV jusqu'à 96&nbsp;kHz (CDJ-2000NXS2, CDJ-3000), et seulement jusqu'à 48&nbsp;kHz pour les modèles plus anciens. Or Convertisseur audio garde la fréquence de la source&nbsp;: un FLAC Hi-Res 24 bits / 192&nbsp;kHz d'Antra donnera un WAV à 192&nbsp;kHz, illisible sur ces lecteurs. Pour des WAV destinés aux CDJ, téléchargez la version <strong>CD (16 bits / 44,1&nbsp;kHz)</strong> sur Antra. Le MP3 n'est pas concerné&nbsp;: il est toujours à 48&nbsp;kHz maximum.</p>
+    <div class="tip">
+      <p><strong>Des WAV lisibles sur tous les CDJ.</strong> Les CDJ lisent le WAV jusqu'à 96&nbsp;kHz (CDJ-2000NXS2, CDJ-3000), et seulement jusqu'à 48&nbsp;kHz pour les modèles plus anciens. Convertisseur audio ramène donc automatiquement les sources Hi-Res (88,2, 96 ou 192&nbsp;kHz) à 48&nbsp;kHz, en gardant le 24 bits. Les sources en 44,1 ou 48&nbsp;kHz restent inchangées, et le MP3 est de toute façon à 48&nbsp;kHz maximum.</p>
     </div>
 
     <h3 class="sub">Et quand on modifie le tempo ou le pitch&nbsp;?</h3>
@@ -537,8 +537,8 @@
           <li><p><strong>Lancez <code>SoundConverter</code>.</strong> La fenêtre s'ouvre après quelques secondes.</p></li>
           <li><p><strong>Source&nbsp;:</strong> cliquez sur <strong>Fichier</strong> pour une archive <code>.zip</code> d'Antra ou un seul morceau, ou sur <strong>Dossier</strong> pour un dossier de fichiers (Soulseek, SoundCloud). Vous pouvez aussi les glisser dans la fenêtre.</p></li>
           <li><p><strong>Destination&nbsp;:</strong> choisissez un dossier, ou activez <strong>Créer un nouveau dossier</strong>. <code>Album.zip</code> donnera alors un dossier <code>Album_mp3</code> ou <code>Album_wav</code> placé à côté de la source.</p></li>
-          <li><p><strong>Format de sortie&nbsp;:</strong> choisissez <strong>MP3</strong> (320&nbsp;kbps) ou <strong>WAV</strong>. Le WAV garde la résolution de la source (24 bits si elle est en 24 bits ou plus, sinon 16 bits). Le choix est mémorisé.</p></li>
-          <li><p><strong>Option&nbsp;:</strong> activez <strong>Taguer depuis SoundCloud</strong> pour compléter l'artiste, le genre et la pochette manquants. Les tags déjà présents ne sont jamais écrasés.</p></li>
+          <li><p><strong>Format de sortie&nbsp;:</strong> choisissez <strong>MP3</strong> (320&nbsp;kbps) ou <strong>WAV</strong>. Le WAV est en 24 bits si la source l'est, sinon en 16 bits, et les sources Hi-Res sont ramenées à 48&nbsp;kHz pour être lues par tous les CDJ. Le choix est mémorisé.</p></li>
+          <li><p><strong>Option&nbsp;:</strong> activez <strong>Taguer depuis SoundCloud</strong> pour compléter les tags manquants&nbsp;: le titre et l'artiste d'après un nom de fichier <code>Artiste - Titre</code>, puis l'artiste, le genre et la pochette depuis SoundCloud. Les tags déjà présents ne sont jamais écrasés.</p></li>
           <li><p><strong>Cliquez sur Convertir.</strong> La progression et le journal s'affichent piste par piste. <strong>Annuler</strong> arrête tout en conservant les fichiers déjà convertis.</p></li>
           <li><p><strong>À la fin</strong>, le récapitulatif indique les fichiers convertis, en échec et tagués. <strong>Ouvrir le dossier</strong> affiche vos fichiers, <strong>Réessayer les échecs</strong> relance uniquement ceux qui ont échoué.</p></li>
         </ol>
@@ -548,7 +548,7 @@
           <p><strong>Déjà des MP3 ou des WAV&nbsp;?</strong> L'onglet <strong>Taguer seulement</strong> complète leurs tags sans rien convertir.</p>
         </div>
         <div class="note">
-          <p><strong>Le convertisseur ne rend pas la qualité perdue.</strong> Un MP3 converti en WAV reste un son de qualité MP3. Partez toujours d'une source sans perte (FLAC, WAV, AIFF).</p>
+          <p><strong>Le convertisseur ne rend pas la qualité perdue.</strong> Un AAC ou un Opus converti en MP3 ou en WAV garde sa qualité d'origine&nbsp;: le journal signale ces sources compressées, et les MP3 ne sont pas acceptés du tout. Partez toujours d'une source sans perte (FLAC, WAV, AIFF, ALAC).</p>
         </div>
       </div>
 
@@ -574,7 +574,7 @@
     </details>
     <details>
       <summary>Convertir un MP3 en WAV améliore-t-il le son&nbsp;?</summary>
-      <p>Non. Ce que la compression a supprimé est perdu définitivement. Le WAV obtenu est plus lourd mais sonne exactement comme le MP3 d'origine.</p>
+      <p>Non. Ce que la compression a supprimé est perdu définitivement. Le WAV obtenu est plus lourd mais sonne exactement comme le MP3 d'origine. C'est pourquoi Convertisseur audio n'accepte pas les MP3, et signale dans le journal les autres sources compressées (AAC, Opus…).</p>
     </details>
     <details>
       <summary>Est-ce que je peux reconvertir un MP3 en MP3 320&nbsp;?</summary>
@@ -590,11 +590,11 @@
     </details>
     <details>
       <summary>Faut-il des fichiers en 24 bits ou en Hi-Res (96 ou 192&nbsp;kHz) pour mixer&nbsp;?</summary>
-      <p>Non. Pour de la musique déjà masterisée, la qualité CD (16 bits / 44,1&nbsp;kHz) suffit. Les fichiers Hi-Res sont beaucoup plus lourds, et au-delà de 96&nbsp;kHz ils ne sont pas lus par les CDJ.</p>
+      <p>Non. Pour de la musique déjà masterisée, la qualité CD (16 bits / 44,1&nbsp;kHz) suffit. Les fichiers Hi-Res sont beaucoup plus lourds, et au-delà de 96&nbsp;kHz ils ne sont pas lus par les CDJ. Si vous en avez, Convertisseur audio les ramène à 48&nbsp;kHz en WAV.</p>
     </details>
     <details>
       <summary>Mon WAV ne se lit pas sur le CDJ, pourquoi&nbsp;?</summary>
-      <p>Le plus souvent, sa fréquence est trop élevée&nbsp;: les CDJ-2000NXS2 et CDJ-3000 lisent le WAV jusqu'à 96&nbsp;kHz, les modèles plus anciens jusqu'à 48&nbsp;kHz. Le convertisseur garde la fréquence de la source, donc un FLAC 192&nbsp;kHz donne un WAV 192&nbsp;kHz. Repartez de la version CD sur Antra, ou convertissez en MP3.</p>
+      <p>Le plus souvent, sa fréquence est trop élevée&nbsp;: les CDJ-2000NXS2 et CDJ-3000 lisent le WAV jusqu'à 96&nbsp;kHz, les modèles plus anciens jusqu'à 48&nbsp;kHz. Passez-le dans Convertisseur audio avec la sortie WAV&nbsp;: les fichiers au-delà de 48&nbsp;kHz sont ramenés à 48&nbsp;kHz. Pensez à choisir un autre dossier de destination que celui du fichier d'origine.</p>
     </details>
     <details>
       <summary>Mon FLAC ne se lit pas sur le CDJ, pourquoi&nbsp;?</summary>

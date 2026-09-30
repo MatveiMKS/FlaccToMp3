@@ -15,6 +15,8 @@ from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TCON, TDRC, TRCK, TPOS, TBP
 
 # Files the SoundCloud tagger can write to: both keep their tags in ID3
 TAGGABLE_EXTENSIONS = ('.mp3', '.wav')
+# ID3v2.3, not mutagen's default 2.4: Serato shows no artwork on 2.4 tags, and Windows can't read them
+ID3_VERSION = 3
 
 # Tags copied into a converted WAV, by their name in mutagen's format-independent ("easy") interface
 EASY_TO_ID3 = {
@@ -124,13 +126,20 @@ def search_soundcloud(query, artist, title):
     if best.get('uploader') and normalize(best['uploader']) not in normalize(match):
         match = f"{best['uploader']} - {match}"
 
+    # The artist credited on the track, when the uploader filled it in: the uploader is often a label or a repost channel.
+    # yt-dlp swaps commas inside a name for full-width ones in 'artist', so join 'artists' instead
+    artists = track.get('artists') or []
+    artist = ', '.join(artists) if artists else track.get('artist')
+
+    # The 500x500 artwork: the original upload can weigh several MB, all of it embedded in every file
     thumbnails = track.get('thumbnails') or []
+    artwork = next((t.get('url') for t in thumbnails if t.get('id') == 't500x500'), None)
     return {
         'score': score,
         'match': match,
-        'artist': track.get('uploader') or best.get('uploader'),
+        'artist': artist or track.get('uploader') or best.get('uploader'),
         'genre': track.get('genre'),
-        'artwork_url': track.get('thumbnail') or (thumbnails[-1].get('url') if thumbnails else None)
+        'artwork_url': artwork or track.get('thumbnail') or (thumbnails[-1].get('url') if thumbnails else None)
     }
 
 def open_id3(filepath):
@@ -176,22 +185,24 @@ def copy_tags_to_wav(src, wav_path):
                 wav.tags.add(frame(encoding=3, text=[str(v) for v in values]))
         for mime, kind, data in source_pictures(source):
             wav.tags.add(APIC(encoding=3, mime=mime, type=kind, desc='Cover' if kind == 3 else '', data=data))
-    wav.save()
+    wav.save(v2_version=ID3_VERSION)
 
-def bits_per_sample(path):
-    """Bit depth of a lossless file, or 0 when unknown (lossy formats have none)."""
-    try:
-        return getattr(MutagenFile(path).info, 'bits_per_sample', 0) or 0
-    except Exception:
-        return 0
+def split_name(name):
+    """(artist, title) read from an "Artist - Title" file name; artist is '' when the name has no " - "."""
+    cleaned = clean_name(name)
+    if ' - ' in cleaned:
+        artist, title = cleaned.split(' - ', 1)
+        return artist.strip(), title.strip()
+    return '', cleaned
 
 def tag_file(filepath, name=None):
-    """Fills in missing Artist, Genre and Artwork on one MP3 or WAV from SoundCloud.
+    """Fills in missing Title, Artist, Genre and Artwork on one MP3 or WAV.
 
-    name: track name to search for when the file has no title tag (default: the file name).
+    Title and artist come from an "Artist - Title" file name first, the rest from SoundCloud.
+    name: track name to use when the file has no title tag (default: the file name).
 
     Returns {'code': 'already' | 'no_results' | 'no_match' | 'added' | 'nothing', 'added': [[field, value], ...]}
-    where field is 'artist', 'genre' or 'artwork'; 'match' names the SoundCloud track used.
+    where field is 'title', 'artist', 'genre' or 'artwork'; 'match' names the SoundCloud track used, if any.
     Raises on search/network/file errors.
     """
     if name is None:
@@ -202,26 +213,46 @@ def tag_file(filepath, name=None):
     def text_of(frame_id):
         return str(audio.tags[frame_id]).strip() if frame_id in audio.tags else ''
 
-    # Check existing metadata
-    has_artist = text_of('TPE1') != ''
+    added = []
+    title, artist = text_of('TIT2'), text_of('TPE1')
+
+    # Without a title or artist tag, DJ software lists the track by its file name: read them from "Artist - Title"
+    if not title or not artist:
+        file_artist, file_title = split_name(name)
+        if not title and file_title:
+            title = file_title
+            audio.tags.add(TIT2(encoding=3, text=title))
+            added.append(['title', title])
+        if not artist and file_artist:
+            artist = file_artist
+            audio.tags.add(TPE1(encoding=3, text=artist))
+            added.append(['artist', artist])
+
     has_genre = text_of('TCON') != ''
     has_artwork = any(tag.startswith('APIC') for tag in audio.tags.keys())
 
-    if has_artist and has_genre and has_artwork:
-        return {'code': 'already', 'added': []}
+    def finish(code, match=None):
+        if added:
+            audio.save(v2_version=ID3_VERSION)
+            return {'code': 'added', 'added': added, 'match': match}
+        result = {'code': code, 'added': []}
+        if match:
+            result['match'] = match
+        return result
+
+    if artist and has_genre and has_artwork:
+        return finish('already')
 
     # If anything is missing, scrape SoundCloud
-    sc_data = search_soundcloud(*build_query(name, text_of('TIT2'), text_of('TPE1')))
+    sc_data = search_soundcloud(*build_query(name, title, artist))
 
     if not sc_data:
-        return {'code': 'no_results', 'added': []}
+        return finish('no_results')
     if 'match' not in sc_data:
-        return {'code': 'no_match', 'added': []}
-
-    added = []
+        return finish('no_match')
 
     # 1. Update Artist
-    if not has_artist and sc_data.get('artist'):
+    if not artist and sc_data.get('artist'):
         audio.tags.add(TPE1(encoding=3, text=sc_data['artist']))
         added.append(['artist', sc_data['artist']])
 
@@ -246,19 +277,15 @@ def tag_file(filepath, name=None):
             )
             added.append(['artwork', None])
 
-    # Save only if changes were made
-    if added:
-        audio.save()
-        return {'code': 'added', 'added': added, 'match': sc_data['match']}
-
-    return {'code': 'nothing', 'added': [], 'match': sc_data['match']}
+    return finish('nothing', sc_data['match'])
 
 def describe_tag_result(result):
     """English one-line summary of a tag_file() result."""
     if result['code'] == 'added':
+        source = f"\"{result['match']}\"" if result.get('match') else "the file name"
         return "added " + ", ".join(
             field.capitalize() + (f" ({value})" if value else "") for field, value in result['added']
-        ) + f" from \"{result['match']}\""
+        ) + f" from {source}"
     return {
         'already': "already has Artist, Genre and Artwork",
         'no_results': "no results found on SoundCloud",

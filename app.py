@@ -13,7 +13,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 import sys
 import webbrowser
-from tagger import tag_file, describe_tag_result, copy_tags_to_wav, bits_per_sample, TAGGABLE_EXTENSIONS
+from tagger import tag_file, describe_tag_result, copy_tags_to_wav, TAGGABLE_EXTENSIONS
 
 # When packaged with PyInstaller, bundled files are unpacked to sys._MEIPASS
 FROZEN = getattr(sys, 'frozen', False)
@@ -51,6 +51,18 @@ AUDIO_EXTENSIONS = (
     '.dsf', '.dff', '.w64', '.spx', '.tak', '.3gp'
 )
 OUTPUT_FORMATS = ('mp3', 'wav')
+# Highest WAV sample rate every CDJ can play
+WAV_MAX_RATE = 48000
+# FFmpeg codecs that keep every bit of the original (plus every pcm_* and dsd_* codec)
+LOSSLESS_CODECS = ('flac', 'alac', 'ape', 'wavpack', 'tta', 'tak', 'mlp', 'truehd', 'wmalossless', 'shorten')
+# Readable names for the lossy codecs people run into, for the warning in the log
+LOSSY_NAMES = {
+    'aac': 'AAC', 'mp3': 'MP3', 'mp2': 'MP2', 'vorbis': 'Vorbis', 'opus': 'Opus', 'wmav1': 'WMA', 'wmav2': 'WMA',
+    'wmapro': 'WMA Pro', 'ac3': 'AC-3', 'eac3': 'E-AC-3', 'dts': 'DTS', 'amr_nb': 'AMR', 'amr_wb': 'AMR',
+    'speex': 'Speex', 'musepack7': 'Musepack', 'musepack8': 'Musepack'
+}
+# Bit depth of FFmpeg's sample formats, when it doesn't state the real one as "(24 bit)"
+SAMPLE_FORMAT_BITS = {'u8': 8, 's16': 16, 's32': 32, 's64': 64, 'flt': 32, 'dbl': 64}
 
 class Job:
     """One running conversion or tagging run, so it can be cancelled from another request."""
@@ -194,6 +206,32 @@ def error_line(text):
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     # Drop the "[flac @ 000001f3...] " prefix naming the component
     return re.sub(r'^(\[[^\]]*\]\s*)+', '', lines[0])[:300] if lines else ''
+
+def probe(path):
+    """Codec, sample rate and bit depth of a file's first audio stream, read by FFmpeg (so from any format).
+
+    Returns {'codec', 'lossless', 'rate', 'bits'}, or {} when FFmpeg can't read it.
+    """
+    try:
+        # Without an output file FFmpeg exits with an error, after printing the stream details
+        result = subprocess.run([FFMPEG, '-hide_banner', '-i', path], stdin=subprocess.DEVNULL, capture_output=True,
+                                creationflags=NO_WINDOW, timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    # "Stream #0:0: Audio: flac, 96000 Hz, stereo, s32 (24 bit)"
+    stream = re.search(r'Stream #\S+.*?: Audio: (\w+)(.*)', result.stderr.decode('utf-8', errors='replace'))
+    if not stream:
+        return {}
+    codec, details = stream.group(1), stream.group(2)
+    rate = re.search(r'(\d+) Hz', details)
+    bits = re.search(r'\((\d+) bit\)', details)
+    sample_format = re.search(r',\s*(u8|s16|s32|s64|flt|dbl)p?\b', details)
+    return {
+        'codec': codec,
+        'lossless': codec in LOSSLESS_CODECS or codec.startswith(('pcm_', 'dsd_')),
+        'rate': int(rate.group(1)) if rate else 0,
+        'bits': int(bits.group(1)) if bits else SAMPLE_FORMAT_BITS.get(sample_format.group(1), 0) if sample_format else 0
+    }
 
 def stream_run(prepare):
     """Wraps a run in an event stream, registering it for /cancel and cleaning up however it ends.
@@ -346,12 +384,17 @@ def convert():
                 return {'status': 'warning', 'code': 'same_file', 'file': filename, 'id': source_id,
                         'msg': f'Skipped {filename}: the output would overwrite the source'}
 
+            source = probe(in_path)
+
             def command(with_art):
                 # Tags live on the container for most formats and on the audio stream for Ogg/Opus: take both
                 cmd = [FFMPEG, '-hide_banner', '-loglevel', 'error', '-y', '-i', in_path, '-map', '0:a:0']
                 if fmt == 'wav':
                     # Keep 24-bit sources in 24 bits; everything else (CD audio, lossy formats) fits in 16
-                    pcm = 'pcm_s24le' if bits_per_sample(in_path) > 16 else 'pcm_s16le'
+                    pcm = 'pcm_s24le' if source.get('lossless') and source.get('bits', 0) > 16 else 'pcm_s16le'
+                    # CDJs play WAV up to 48 kHz (96 kHz on recent models): bring hi-res sources down to 48 kHz
+                    if source.get('rate', 0) > WAV_MAX_RATE:
+                        cmd += ['-ar', str(WAV_MAX_RATE)]
                     return cmd + ['-c:a', pcm, '-map_metadata', '0', '-map_metadata', '0:s:a:0', out_path]
                 if with_art:
                     cmd.extend(['-map', '0:v?', '-c:v', 'copy'])
@@ -387,6 +430,9 @@ def convert():
             event = {'status': 'success', 'file': filename, 'id': source_id}
             if out_stem != stem:
                 event['renamed'] = out_name
+            # Converting a lossy file can't bring back what its compression removed: say so
+            if source and not source['lossless']:
+                event['lossy'] = LOSSY_NAMES.get(source['codec'], source['codec'].upper())
             if tag and not job.cancelled.is_set():
                 try:
                     with tag_slots:

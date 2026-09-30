@@ -222,10 +222,10 @@
                 createTitle: 'Créer un nouveau dossier',
                 formatLabel: 'Format de sortie',
                 formatDesc_mp3: 'MP3 320 kbps : fichiers légers, lisibles partout.',
-                formatDesc_wav: 'WAV sans perte, en 16 ou 24 bits selon la source. Tags et pochette conservés.',
+                formatDesc_wav: 'WAV sans perte, en 16 ou 24 bits selon la source, 48 kHz maximum pour être lu par tous les CDJ. Tags et pochette conservés.',
                 createDesc: () => `Porte le nom de la source suivi de <span class="font-mono">_${format}</span>. Créé dans la destination, ou à côté de la source si aucune destination n'est indiquée.`,
                 tagTitle: 'Taguer depuis SoundCloud',
-                tagDesc: 'Complète l\'artiste, le genre et la pochette manquants à partir du titre ou du nom du fichier.',
+                tagDesc: 'Complète le titre, l\'artiste, le genre et la pochette manquants, d\'après le nom du fichier et SoundCloud.',
                 convert: 'Convertir',
                 converting: 'Conversion…',
                 tagAction: 'Taguer',
@@ -246,6 +246,7 @@
                 convert_failed: p => `✗ Échec de la conversion de ${p.file}` + (p.detail ? ` : ${p.detail}` : ''),
                 failed: p => `✗ Échec : ${p.detail}`,
                 same_file: p => `✗ ${p.file} ignoré : le fichier converti écraserait la source`,
+                lossyLine: p => `   Source compressée (${p.codec}) : la conversion ne rend pas la qualité perdue.`,
                 cancelledLine: 'Annulé par l\'utilisateur.',
                 tagLine: p => `   Tags : ${p.text}`,
                 tagFailed: p => `   Échec du tag : ${p.detail}`,
@@ -253,7 +254,8 @@
                 tag_no_results: 'aucun résultat sur SoundCloud',
                 tag_no_match: 'aucun résultat SoundCloud assez proche du titre',
                 tag_nothing: 'aucune donnée manquante trouvée',
-                tag_added: p => `ajout : ${p.list} (d'après « ${p.match} »)`,
+                tag_added: p => `ajout : ${p.list} ` + (p.match ? `(d'après « ${p.match} »)` : '(d\'après le nom du fichier)'),
+                field_title: 'Titre',
                 field_artist: 'Artiste',
                 field_genre: 'Genre',
                 field_artwork: 'Pochette',
@@ -300,10 +302,10 @@
                 createTitle: 'Create a new folder',
                 formatLabel: 'Output format',
                 formatDesc_mp3: '320 kbps MP3: small files that play anywhere.',
-                formatDesc_wav: 'Lossless WAV, 16 or 24 bits depending on the source. Tags and artwork are kept.',
+                formatDesc_wav: 'Lossless WAV, 16 or 24 bits depending on the source, at most 48 kHz so every CDJ can play it. Tags and artwork are kept.',
                 createDesc: () => `Named after the source with <span class="font-mono">_${format}</span> added. Placed in the destination, or next to the source if no destination is set.`,
                 tagTitle: 'Tag from SoundCloud',
-                tagDesc: 'Fills in missing artist, genre and artwork using the title or file name.',
+                tagDesc: 'Fills in missing title, artist, genre and artwork from the file name and SoundCloud.',
                 convert: 'Convert',
                 converting: 'Converting…',
                 tagAction: 'Tag',
@@ -324,6 +326,7 @@
                 convert_failed: p => `✗ Failed to convert ${p.file}` + (p.detail ? `: ${p.detail}` : ''),
                 failed: p => `✗ Failed: ${p.detail}`,
                 same_file: p => `✗ Skipped ${p.file}: the converted file would overwrite the source`,
+                lossyLine: p => `   Lossy source (${p.codec}): converting it can't bring back the lost quality.`,
                 cancelledLine: 'Cancelled by the user.',
                 tagLine: p => `   Tags: ${p.text}`,
                 tagFailed: p => `   Tagging failed: ${p.detail}`,
@@ -331,7 +334,8 @@
                 tag_no_results: 'no results found on SoundCloud',
                 tag_no_match: 'no SoundCloud result was close enough to the title',
                 tag_nothing: 'no missing data could be found',
-                tag_added: p => `added ${p.list} (from "${p.match}")`,
+                tag_added: p => `added ${p.list} ` + (p.match ? `(from "${p.match}")` : '(from the file name)'),
+                field_title: 'Title',
                 field_artist: 'Artist',
                 field_genre: 'Genre',
                 field_artwork: 'Artwork',
@@ -706,6 +710,7 @@
                 setProgress('progress', { current: data.current, total: data.total });
             } else if (data.status === 'success') {
                 log('converted', { file: data.file, renamed: data.renamed }, 'text-zinc-950 dark:text-white font-medium');
+                if (data.lossy) log('lossyLine', { codec: data.lossy }, 'text-amber-700 dark:text-amber-400 whitespace-pre-wrap');
                 if (data.tag) log('tagLine', { tag: data.tag }, 'text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap');
                 if (data.tag_error) log('tagFailed', { detail: data.tag_error }, 'text-amber-700 dark:text-amber-400 whitespace-pre-wrap');
                 // When only tagging, a file whose lookup failed is a failed file

@@ -1,6 +1,6 @@
 # Convertisseur audio (Sound Converter)
 
-Une petite application Windows et macOS qui convertit les fichiers audio (FLAC, WAV, M4A, OGG, WMA…) en MP3 320 kbps ou en WAV, et peut compléter l'artiste, le genre et la pochette manquants depuis SoundCloud. Elle tourne sur votre propre machine, dans sa propre fenêtre ; vos fichiers ne sont envoyés sur aucun serveur.
+Une petite application Windows et macOS qui convertit les fichiers audio (FLAC, WAV, M4A, OGG, WMA…) en MP3 320 kbps ou en WAV, et peut compléter le titre, l'artiste, le genre et la pochette manquants d'après le nom du fichier et SoundCloud. Elle tourne sur votre propre machine, dans sa propre fenêtre ; vos fichiers ne sont envoyés sur aucun serveur.
 
 ## Téléchargement
 
@@ -40,15 +40,20 @@ L'onglet **Taguer seulement** complète les tags de fichiers MP3 ou WAV existant
 
 - **Format de sortie** :
   - **MP3** : MP3 320 kbps, léger et lisible partout.
-  - **WAV** : sans perte, en 24 bits si la source est en 24 bits ou plus, sinon en 16 bits ; la fréquence d'échantillonnage est conservée. Les tags et la pochette sont écrits dans un bloc ID3, que lisent les logiciels de DJ (rekordbox, Serato…). Convertir un MP3 ou un autre format compressé en WAV ne rend pas la qualité perdue.
+  - **WAV** : sans perte, en 24 bits si la source est en 24 bits ou plus, sinon en 16 bits. La fréquence d'échantillonnage est conservée jusqu'à 48 kHz ; au-delà (sources Hi-Res en 88,2, 96 ou 192 kHz), elle est ramenée à 48 kHz, la fréquence maximale que lisent tous les CDJ. Les tags et la pochette sont écrits dans un bloc ID3, que lisent les logiciels de DJ (rekordbox, Serato…). Convertir un MP3 ou un autre format compressé en WAV ne rend pas la qualité perdue.
 
   Le choix est mémorisé.
 - **Créer un nouveau dossier** : enregistre les fichiers dans un nouveau dossier portant le nom de la source suivi de `_mp3` ou `_wav` selon le format (`Album` ou `Album.zip` devient `Album_mp3`). Il est créé dans la destination, ou à côté de la source si la destination est laissée vide.
-- **Taguer depuis SoundCloud** : recherche chaque morceau sur SoundCloud et complète l'artiste, le genre et la pochette lorsqu'ils sont absents. Les tags existants ne sont jamais écrasés. La recherche utilise le titre déjà présent dans le fichier, ou à défaut le nom du fichier débarrassé des numéros de piste (`01 - `) et des mentions comme `[FREE DL]`. Les cinq premiers résultats sont comparés au morceau et le plus proche est retenu ; si aucun n'est assez proche, le fichier n'est pas tagué. Un titre très court ou très courant peut malgré tout recevoir les tags d'un autre morceau du même nom.
+- **Taguer depuis SoundCloud** : complète le titre, l'artiste, le genre et la pochette lorsqu'ils sont absents. Les tags existants ne sont jamais écrasés.
+  - Le titre et l'artiste sont d'abord lus dans le nom du fichier, débarrassé des numéros de piste (`01 - `) et des mentions comme `[FREE DL]` : `Artiste - Titre [FREE DL].flac` donne l'artiste `Artiste` et le titre `Titre`. Sans ces tags, les logiciels de DJ n'afficheraient que le nom du fichier.
+  - Le reste vient de SoundCloud. La recherche utilise le titre et l'artiste du fichier ; les cinq premiers résultats sont comparés au morceau et le plus proche est retenu. Si aucun n'est assez proche, rien n'est pris sur SoundCloud. Un titre très court ou très courant peut malgré tout recevoir les tags d'un autre morceau du même nom.
+  - L'artiste est celui crédité sur le morceau SoundCloud, ou à défaut le compte qui l'a publié. La pochette est prise en 500 × 500 pixels, assez pour les logiciels de DJ sans alourdir chaque fichier de plusieurs mégaoctets.
+  - Les tags sont écrits en ID3v2.3, la version que lisent tous les logiciels de DJ : Serato n'affiche pas la pochette des tags en ID3v2.4.
 
 ### Bon à savoir
 
-- Formats acceptés : FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack, et les autres formats audio que FFmpeg sait lire.
+- Formats acceptés : FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack, et les autres formats audio que FFmpeg sait lire. Les MP3 ne sont pas acceptés, pour ne pas les recompresser.
+- Quand la source est elle-même compressée (AAC, Opus, Vorbis, WMA…), le journal le signale : la conversion fonctionne, mais le fichier obtenu n'est pas de meilleure qualité que l'original.
 - Avec un dossier comme source, seuls les fichiers placés directement dedans sont lus, pas ceux des sous-dossiers. Avec un ZIP, tous les fichiers audio sont pris, quelle que soit leur profondeur, et écrits dans un seul dossier de sortie.
 - Quand deux fichiers donneraient le même fichier de sortie (`CD1/01.flac` et `CD2/01.flac`, ou `titre.flac` et `titre.wav`), les suivants reçoivent un numéro : `01.mp3`, `01_2.mp3`, `01_3.mp3`.
 - Quand une conversion échoue, le journal indique la raison donnée par FFmpeg.
