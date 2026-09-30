@@ -314,7 +314,7 @@
 
     <div class="grid">
       <div class="card"><h3>YouTube</h3><p>L'audio est diffusé en AAC ou en Opus compressé, autour de 128 à 160&nbsp;kbps. C'est cette version qui est récupérée.</p></div>
-      <div class="card"><h3>SoundCloud (écoute)</h3><p>Le flux d'écoute est un fichier compressé à faible débit, pas le fichier original de l'artiste. Seul le bouton de téléchargement officiel donne l'original.</p></div>
+      <div class="card"><h3>SoundCloud (écoute)</h3><p>L'écoute gratuite est diffusée en Opus à environ 64&nbsp;kbps (ou en MP3 128&nbsp;kbps), et au mieux en AAC 256&nbsp;kbps avec l'abonnement Go+. Ce n'est jamais le fichier original de l'artiste&nbsp;: seul le bouton de téléchargement officiel le donne.</p></div>
       <div class="card"><h3>Spotify</h3><p>Beaucoup de « téléchargeurs Spotify » vont en réalité chercher le morceau sur YouTube et récupèrent donc la version YouTube, parfois même une autre version du titre.</p></div>
     </div>
 
@@ -352,7 +352,7 @@
       <h3 class="sub">Télécharger un morceau</h3>
       <ol class="steps">
         <li><p><strong>Repérez les morceaux offerts</strong>&nbsp;: leur titre ou leur description mentionne souvent <em>Free Download</em> ou <em>Free DL</em>.</p></li>
-        <li><p><strong>Téléchargement direct&nbsp;:</strong> connectez-vous à SoundCloud, ouvrez le menu <strong>…</strong> (<em>Plus</em>) sous le morceau et choisissez <strong>Télécharger le fichier</strong>.</p></li>
+        <li><p><strong>Téléchargement direct&nbsp;:</strong> connectez-vous à SoundCloud (un compte gratuit suffit), puis cliquez sur <strong>Télécharger le fichier</strong> sous la forme d'onde du morceau, ou dans le menu <strong>…</strong> (<em>Plus</em>). Si le bouton n'apparaît pas, l'artiste n'a pas autorisé le téléchargement.</p></li>
         <li><p><strong>Lien externe&nbsp;:</strong> parfois un bouton <em>Free Download</em> ou <em>Buy</em> renvoie vers une page de l'artiste, qui demande en général de le suivre ou de partager le morceau avant de donner le fichier.</p></li>
       </ol>
       <div class="note">
@@ -400,8 +400,11 @@
         <li><p><strong>Ouvrez <a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">antra.hoshi.cfd</a></strong>, cliquez sur <strong>Enter</strong>, puis connectez-vous (<strong>Log in</strong>) ou créez un compte gratuit (<strong>Sign up</strong>).</p></li>
         <li><p><strong>Collez le lien</strong> et validez. Antra affiche la liste des pistes et la qualité trouvée pour chacune.</p></li>
         <li><p><strong>Gardez le format FLAC</strong> et lancez le téléchargement.</p></li>
-        <li><p><strong>Enregistrez l'archive</strong> <code>.zip</code> proposée par le navigateur. Inutile de la décompresser.</p></li>
+        <li><p><strong>Enregistrez l'archive</strong> <code>.zip</code> dès qu'elle est prête (bouton <strong>Save file</strong>). Inutile de la décompresser.</p></li>
       </ol>
+      <div class="note">
+        <p><strong>Ne tardez pas à enregistrer l'archive.</strong> Une fois les morceaux chargés par Antra, le lien de téléchargement de l'archive expire rapidement. Restez sur la page pendant la préparation et enregistrez le fichier dès qu'il est disponible, sinon il faudra relancer le téléchargement.</p>
+      </div>
       <div class="note">
         <p><strong>Évitez l'option MP3 d'Antra.</strong> Le fichier obtenu n'est pas forcément un vrai MP3 320&nbsp;kbps&nbsp;: il peut s'agir d'un AAC 256&nbsp;kbps reconverti en MP3 320. Or passer d'un format compressé à un autre dégrade le son. Prenez le FLAC et laissez le convertisseur produire le MP3 à partir de la source sans perte.</p>
       </div>
@@ -447,12 +450,12 @@
       <div class="card">
         <span class="tag">Presque jamais pour mixer</span>
         <h3>FLAC</h3>
-        <p>Sans perte, mais compressé&nbsp;: environ deux fois plus léger qu'un WAV pour le même son. Parfait comme source à garder pour reconvertir plus tard. Pour un DJ, il n'apporte pratiquement rien par rapport au WAV, et il n'est pas lu par tous les lecteurs, notamment certains CDJ plus anciens.</p>
+        <p>Sans perte, mais compressé&nbsp;: 30 à 50&nbsp;% plus léger qu'un WAV pour exactement le même son. Parfait comme source à garder pour reconvertir plus tard. Pour un DJ, il n'apporte pratiquement rien, et il n'est pas lu par tous les lecteurs&nbsp;: les CDJ-2000NXS et modèles antérieurs, encore courants en club, ne le lisent pas (support à partir du CDJ-2000NXS2).</p>
       </div>
       <div class="card">
         <span class="tag">Gros systèmes son</span>
         <h3>WAV</h3>
-        <p>Sans perte et non compressé, lu par tous les lecteurs et logiciels de DJ. Utile si vous jouez sur de très gros systèmes son bien réglés, où le moindre détail compte. En contrepartie, les fichiers sont très lourds.</p>
+        <p>Sans perte et non compressé, lu par les lecteurs et logiciels de DJ en 16 ou 24 bits. Utile si vous jouez sur de très gros systèmes son bien réglés, où le moindre détail compte. En contrepartie, les fichiers sont très lourds, et les CDJ ont une limite de fréquence (voir ci-dessous).</p>
       </div>
       <div class="card featured">
         <span class="tag">Suffisant la plupart du temps</span>
@@ -475,6 +478,12 @@
         </tbody>
       </table>
     </div>
+    <p style="color:var(--muted);font-size:14.5px;margin:8px 0 0">Tailles calculées à partir des débits. Celle du FLAC est une moyenne&nbsp;: elle varie selon la musique.</p>
+
+    <div class="note">
+      <p><strong>Attention aux WAV haute résolution sur CDJ.</strong> Les CDJ lisent le WAV jusqu'à 96&nbsp;kHz (CDJ-2000NXS2, CDJ-3000), et seulement jusqu'à 48&nbsp;kHz pour les modèles plus anciens. Or Convertisseur audio garde la fréquence de la source&nbsp;: un FLAC Hi-Res 24 bits / 192&nbsp;kHz d'Antra donnera un WAV à 192&nbsp;kHz, illisible sur ces lecteurs. Pour des WAV destinés aux CDJ, téléchargez la version <strong>CD (16 bits / 44,1&nbsp;kHz)</strong> sur Antra. Le MP3 n'est pas concerné&nbsp;: il est toujours à 48&nbsp;kHz maximum.</p>
+    </div>
+
     <h3 class="sub">Et quand on modifie le tempo ou le pitch&nbsp;?</h3>
     <p class="lead" style="margin-bottom:18px">Pour caler deux morceaux, on accélère ou on ralentit souvent l'un d'eux. Avec le <strong>Master Tempo</strong> (ou <em>key lock</em>), le lecteur change la vitesse sans changer la tonalité. Il doit pour cela découper et recomposer le son en temps réel, et c'est là que le format fait une différence.</p>
 
@@ -557,25 +566,127 @@
   <div class="wrap">
     <div class="eyebrow">Bon à savoir</div>
     <h2>Questions fréquentes</h2>
+
+    <h3 class="sub">Qualité et formats</h3>
     <details>
-      <summary>Dois-je décompresser l'archive avant&nbsp;?</summary>
-      <p>Non. Avec un ZIP, tous les fichiers audio sont pris, quelle que soit la profondeur des dossiers, et écrits dans un seul dossier de sortie. Avec un dossier comme source, seuls les fichiers placés directement dedans sont lus.</p>
+      <summary>Comment savoir si un fichier est vraiment de bonne qualité&nbsp;?</summary>
+      <p>Le format et le débit affichés ne suffisent pas. Ouvrez le fichier dans <a href="https://www.spek.cc/" target="_blank" rel="noopener">Spek</a> (gratuit, Windows, Mac et Linux)&nbsp;: un vrai fichier sans perte montre du contenu jusqu'à 20&nbsp;kHz et au-delà, un MP3 320 s'arrête vers 19-20&nbsp;kHz, et un fichier issu d'un MP3 128&nbsp;kbps est coupé net vers 16&nbsp;kHz.</p>
     </details>
     <details>
-      <summary>Quels formats sont acceptés&nbsp;?</summary>
+      <summary>Convertir un MP3 en WAV améliore-t-il le son&nbsp;?</summary>
+      <p>Non. Ce que la compression a supprimé est perdu définitivement. Le WAV obtenu est plus lourd mais sonne exactement comme le MP3 d'origine.</p>
+    </details>
+    <details>
+      <summary>Est-ce que je peux reconvertir un MP3 en MP3 320&nbsp;?</summary>
+      <p>Inutile, et même contre-productif&nbsp;: chaque nouvel encodage compressé dégrade un peu plus le son. Gardez le MP3 tel quel et utilisez l'onglet <strong>Taguer seulement</strong> si vous voulez compléter ses tags.</p>
+    </details>
+    <details>
+      <summary>Le FLAC et le WAV sonnent-ils pareil&nbsp;?</summary>
+      <p>Oui, au bit près. Le FLAC est simplement compressé sans perte, comme un fichier ZIP. La différence porte sur la taille (le FLAC est 30 à 50&nbsp;% plus léger) et la compatibilité avec les lecteurs.</p>
+    </details>
+    <details>
+      <summary>Et l'AIFF&nbsp;?</summary>
+      <p>L'AIFF est l'équivalent du WAV chez Apple&nbsp;: même qualité, même taille. Le convertisseur l'accepte en entrée, mais produit du MP3 ou du WAV.</p>
+    </details>
+    <details>
+      <summary>Faut-il des fichiers en 24 bits ou en Hi-Res (96 ou 192&nbsp;kHz) pour mixer&nbsp;?</summary>
+      <p>Non. Pour de la musique déjà masterisée, la qualité CD (16 bits / 44,1&nbsp;kHz) suffit. Les fichiers Hi-Res sont beaucoup plus lourds, et au-delà de 96&nbsp;kHz ils ne sont pas lus par les CDJ.</p>
+    </details>
+    <details>
+      <summary>Mon WAV ne se lit pas sur le CDJ, pourquoi&nbsp;?</summary>
+      <p>Le plus souvent, sa fréquence est trop élevée&nbsp;: les CDJ-2000NXS2 et CDJ-3000 lisent le WAV jusqu'à 96&nbsp;kHz, les modèles plus anciens jusqu'à 48&nbsp;kHz. Le convertisseur garde la fréquence de la source, donc un FLAC 192&nbsp;kHz donne un WAV 192&nbsp;kHz. Repartez de la version CD sur Antra, ou convertissez en MP3.</p>
+    </details>
+    <details>
+      <summary>Mon FLAC ne se lit pas sur le CDJ, pourquoi&nbsp;?</summary>
+      <p>Les CDJ-2000NXS et modèles antérieurs ne lisent pas le FLAC. Convertissez-le en WAV ou en MP3 320 avec Convertisseur audio.</p>
+    </details>
+
+    <h3 class="sub">Trouver des sons</h3>
+    <details>
+      <summary>Antra est-il payant&nbsp;?</summary>
+      <p>Non, il faut seulement créer un compte gratuit. Le quota est de 5 playlists, 10 albums et 100 morceaux par jour. Une clé supporter de 30 jours, obtenue en soutenant Antra sur Patreon, lève ces limites (voir <a href="#limites">les limites</a>).</p>
+    </details>
+    <details>
+      <summary>Faut-il un compte Spotify, Deezer ou autre pour utiliser Antra&nbsp;?</summary>
+      <p>Non. Il suffit de copier le lien public du morceau ou de la playlist.</p>
+    </details>
+    <details>
+      <summary>Ma playlist fait plus de 100 morceaux, comment faire&nbsp;?</summary>
+      <p>Antra limite chaque téléchargement à 100 pistes. Téléchargez la première partie, puis utilisez <strong>Download next chunk</strong> pour la suite. Vous obtenez plusieurs archives, à convertir l'une après l'autre.</p>
+    </details>
+    <details>
+      <summary>Le lien de l'archive Antra ne fonctionne plus.</summary>
+      <p>Le lien expire rapidement après la préparation de l'archive. Relancez le téléchargement sur Antra et enregistrez l'archive dès qu'elle est prête.</p>
+    </details>
+    <details>
+      <summary>Puis-je importer une playlist sans lien&nbsp;?</summary>
+      <p>Oui, Antra accepte un fichier de playlist au format CSV, M3U, XSPF ou JSPF via <strong>Import a playlist file</strong>.</p>
+    </details>
+    <details>
+      <summary>Il n'y a pas de bouton de téléchargement sur un morceau SoundCloud.</summary>
+      <p>L'artiste n'a pas autorisé le téléchargement direct. Regardez la description ou le bouton <em>Buy</em>, qui renvoient parfois vers un lien de téléchargement gratuit. Sinon, le morceau n'est pas disponible gratuitement.</p>
+    </details>
+    <details>
+      <summary>Soulseek est-il gratuit&nbsp;?</summary>
+      <p>Oui, le réseau et les clients SoulseekQt et Nicotine+ sont gratuits.</p>
+    </details>
+    <details>
+      <summary>Mon téléchargement Soulseek reste en attente.</summary>
+      <p>Vous êtes dans la file d'attente de l'autre utilisateur, ou il est hors ligne. Choisissez un autre résultat, de préférence chez quelqu'un qui a une file courte et une bonne vitesse. Partager vos propres fichiers aide aussi.</p>
+    </details>
+
+    <h3 class="sub">Convertisseur audio</h3>
+    <details>
+      <summary>MP3 ou WAV, que choisir dans le convertisseur&nbsp;?</summary>
+      <p>MP3 dans la plupart des cas&nbsp;: léger et lu partout. WAV pour les très gros systèmes son ou si vous modifiez beaucoup le tempo. Voir <a href="#formats">la comparaison des formats</a>.</p>
+    </details>
+    <details>
+      <summary>L'application est-elle gratuite&nbsp;? Est-elle sûre&nbsp;?</summary>
+      <p>Elle est gratuite et son code source est public sur <a href="https://github.com/MatveiMKS/FlaccToMp3">GitHub</a>. Windows, macOS et certains antivirus l'avertissent parce qu'elle n'est pas signée (un certificat de signature est payant), pas parce qu'elle est dangereuse. Les fichiers de chaque version sont générés automatiquement par GitHub à partir de ce code.</p>
+    </details>
+    <details>
+      <summary>Sur Mac, l'application refuse de s'ouvrir.</summary>
+      <p>Ouvrez <strong>Réglages Système → Confidentialité et sécurité</strong>, descendez jusqu'au message concernant <code>SoundConverter</code> et cliquez sur <strong>Ouvrir quand même</strong>. Sur macOS 14 et antérieurs, un clic droit sur l'application puis <strong>Ouvrir</strong> suffit.</p>
+    </details>
+    <details>
+      <summary>Dois-je décompresser l'archive avant&nbsp;?</summary>
+      <p>Non. Avec un ZIP, tous les fichiers audio sont pris, quelle que soit la profondeur des dossiers, et écrits dans un seul dossier de sortie.</p>
+    </details>
+    <details>
+      <summary>Les fichiers dans les sous-dossiers ne sont pas convertis.</summary>
+      <p>Avec un dossier comme source, seuls les fichiers placés directement dedans sont lus. Convertissez chaque sous-dossier séparément, ou compressez le tout en ZIP&nbsp;: dans une archive, tous les fichiers sont pris.</p>
+    </details>
+    <details>
+      <summary>Quels formats sont acceptés en entrée&nbsp;?</summary>
       <p>FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack et les autres formats que FFmpeg sait lire.</p>
     </details>
     <details>
+      <summary>Où sont enregistrés les fichiers convertis&nbsp;?</summary>
+      <p>Dans le dossier de destination choisi. Avec <strong>Créer un nouveau dossier</strong>, dans un dossier <code>…_mp3</code> ou <code>…_wav</code> créé dans la destination, ou à côté de la source si aucune destination n'est indiquée. <strong>Ouvrir le dossier</strong> l'affiche à la fin.</p>
+    </details>
+    <details>
       <summary>Les tags et la pochette d'origine sont-ils conservés&nbsp;?</summary>
-      <p>Oui, ils sont recopiés dans le fichier converti. L'option SoundCloud ne fait que compléter ce qui manque.</p>
+      <p>Oui, ils sont recopiés dans le fichier converti, y compris en WAV (dans un bloc ID3 lu par rekordbox et Serato). L'option SoundCloud ne fait que compléter ce qui manque, sans jamais écraser un tag existant.</p>
+    </details>
+    <details>
+      <summary>Un morceau a reçu les tags d'un autre titre.</summary>
+      <p>La recherche SoundCloud compare les cinq premiers résultats et garde le plus proche. Un titre très court ou très courant peut malgré tout tomber sur un autre morceau du même nom. Renommez le fichier sous la forme <code>Artiste - Titre</code> pour aider la recherche, ou corrigez les tags dans votre logiciel de DJ.</p>
     </details>
     <details>
       <summary>Faut-il une connexion Internet&nbsp;?</summary>
       <p>Seulement pour les tags SoundCloud. La conversion fonctionne hors ligne.</p>
     </details>
     <details>
+      <summary>Une conversion a échoué, que faire&nbsp;?</summary>
+      <p>Le journal indique la raison donnée par FFmpeg, souvent un fichier incomplet ou endommagé. <strong>Réessayer les échecs</strong> relance uniquement les fichiers concernés. Si l'échec persiste, retéléchargez le fichier.</p>
+    </details>
+    <details>
       <summary>Que se passe-t-il si deux pistes portent le même nom&nbsp;?</summary>
       <p>Les suivantes reçoivent un numéro&nbsp;: <code>01.mp3</code>, <code>01_2.mp3</code>, <code>01_3.mp3</code>. En revanche, les fichiers du même nom déjà présents dans le dossier de sortie sont écrasés.</p>
+    </details>
+    <details>
+      <summary>La conversion est-elle rapide&nbsp;?</summary>
+      <p>Les fichiers sont convertis en parallèle, un par cœur de processeur. La recherche des tags SoundCloud, qui passe par Internet, ajoute un peu de temps par morceau.</p>
     </details>
     <details>
       <summary>Peut-on changer la langue ou le thème&nbsp;?</summary>
