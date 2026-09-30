@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Convertisseur MP3</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bundled copy of Tailwind, so the page is styled without an internet connection -->
+    <script src="{{ url_for('static', filename='tailwind-3.4.17.js') }}"></script>
     <script>
         tailwind.config = { darkMode: 'class' };
         // Saved choice wins; otherwise follow the system theme
@@ -71,27 +72,34 @@
         </header>
 
         <div class="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-3xl p-6 space-y-6 shadow-xl shadow-zinc-900/10 dark:shadow-black/60">
+            <!-- Mode -->
+            <div role="tablist" class="grid grid-cols-2 p-1 gap-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-slate-50 dark:bg-black text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                <button role="tab" data-mode="convert" onclick="setMode('convert')" class="py-2 rounded-lg transition-colors disabled:cursor-not-allowed" data-i18n="modeConvert"></button>
+                <button role="tab" data-mode="tag" onclick="setMode('tag')" class="py-2 rounded-lg transition-colors disabled:cursor-not-allowed" data-i18n="modeTag"></button>
+            </div>
+
             <!-- Source -->
             <div>
                 <label for="inputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2" data-i18n="source"></label>
                 <div class="flex gap-2">
-                    <input type="text" id="inputDir" data-i18n-placeholder="sourcePlaceholder" spellcheck="false"
+                    <input type="text" id="inputDir" spellcheck="false"
                            class="flex-1 min-w-0 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40 transition">
                     <button onclick="browseFolder('inputDir')"
                             class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                         <span data-i18n="folder"></span>
                     </button>
-                    <button onclick="browseFolder('inputDir', 'zip')"
+                    <button onclick="browseFolder('inputDir', mode === 'tag' ? 'mp3' : 'file')"
                             class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
-                        ZIP
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"/></svg>
+                        <span data-i18n="file"></span>
                     </button>
                 </div>
+                <p class="text-xs text-zinc-600 dark:text-zinc-300 mt-2" data-i18n="dropHint"></p>
             </div>
 
             <!-- Destination -->
-            <div>
+            <div data-convert-only>
                 <label for="outputDir" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-200 mb-2" data-i18n="destination"></label>
                 <div class="flex gap-2">
                     <input type="text" id="outputDir" data-i18n-placeholder="destPlaceholder" spellcheck="false"
@@ -106,7 +114,7 @@
             </div>
 
             <!-- Options -->
-            <div class="grid gap-3">
+            <div class="grid gap-3" data-convert-only>
                 <label class="flex items-start gap-3 cursor-pointer select-none rounded-2xl border border-zinc-300 dark:border-zinc-700 p-4 transition-colors hover:border-zinc-400 dark:hover:border-zinc-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 dark:has-[:checked]:border-indigo-400 dark:has-[:checked]:bg-indigo-500/15">
                     <input type="checkbox" id="createFolder" onchange="syncOutputDir()" class="peer sr-only">
                     <span class="mt-0.5 shrink-0 w-9 h-5 rounded-full bg-zinc-400 dark:bg-zinc-600 peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
@@ -128,8 +136,12 @@
 
             <div>
                 <p id="formError" class="text-sm font-medium text-red-700 dark:text-red-400 mb-3 hidden"></p>
-                <button id="startBtn" onclick="startConversion()"
-                        class="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-[0.99] transition"></button>
+                <div class="flex gap-2">
+                <button id="startBtn" onclick="startRun()"
+                        class="flex-1 bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-[0.99] transition"></button>
+                <button id="cancelBtn" onclick="cancelRun()" data-i18n="cancel"
+                        class="hidden shrink-0 px-5 rounded-xl border border-red-300 dark:border-red-500/60 bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-500/15 disabled:opacity-60 disabled:cursor-not-allowed text-red-700 dark:text-red-400 text-sm font-semibold transition-colors"></button>
+                </div>
             </div>
         </div>
 
@@ -144,20 +156,52 @@
             </div>
 
             <div id="logArea" class="mt-4 h-48 overflow-y-auto font-mono text-xs leading-5 bg-slate-50 dark:bg-black border border-zinc-300 dark:border-zinc-700 rounded-xl p-3"></div>
+
+            <!-- End-of-run summary -->
+            <div id="summary" class="hidden mt-4">
+                <div id="summaryStats" class="grid grid-cols-3 gap-2"></div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <button id="openBtn" onclick="openOutput()"
+                            class="inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                        <span data-i18n="openFolder"></span>
+                    </button>
+                    <button id="retryBtn" onclick="retryFailed()"
+                            class="hidden inline-flex items-center gap-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-sm font-semibold px-3.5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>
+                        <span data-i18n="retryFailed"></span>
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 
+    <!-- Shown while a file or folder is dragged over the window -->
+    <div id="dropOverlay" class="hidden fixed inset-0 z-50 p-4 bg-indigo-600/20 backdrop-blur-sm pointer-events-none">
+        <div class="w-full h-full flex items-center justify-center rounded-3xl border-4 border-dashed border-indigo-500 text-xl font-bold text-indigo-900 dark:text-white" data-i18n="dropHere"></div>
+    </div>
+
     <script>
+        // Source extensions that are files rather than folders, for the output name preview
+        const SOURCE_EXTENSIONS = {{ extensions|tojson }};
+
         const I18N = {
             fr: {
                 pageTitle: 'Convertisseur MP3',
                 heading: 'Convertisseur <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">MP3</span>',
-                subtitle: 'Convertissez vos fichiers FLAC et WAV en MP3 320 kbps.',
+                subtitle: 'Convertissez vos fichiers audio (FLAC, WAV, M4A, OGG…) en MP3 320 kbps.',
                 themeTitle: 'Basculer entre le mode clair et le mode sombre',
                 langTitle: 'Langue',
+                modeConvert: 'Convertir',
+                modeTag: 'Taguer seulement',
                 source: 'Source',
-                sourcePlaceholder: 'Dossier ou fichier ZIP',
+                sourcePlaceholder: 'Dossier, fichier ZIP ou fichier audio',
+                sourcePlaceholderTag: 'Dossier de MP3 ou fichier MP3',
                 folder: 'Dossier',
+                file: 'Fichier',
+                dropHint: 'Vous pouvez aussi glisser-déposer un dossier ou un fichier dans la fenêtre.',
+                dropHere: 'Déposez pour choisir la source',
+                dropUnsupported: 'Le glisser-déposer ne fonctionne que dans la fenêtre de l\'application, pas dans un navigateur.',
                 destination: 'Destination',
                 destPlaceholder: 'Dossier de sortie',
                 destPlaceholderAuto: 'Facultatif : à côté de la source par défaut',
@@ -166,48 +210,72 @@
                 createTitle: 'Créer un nouveau dossier',
                 createDesc: 'Porte le nom de la source suivi de <span class="font-mono">_mp3</span>. Créé dans la destination, ou à côté de la source si aucune destination n\'est indiquée.',
                 tagTitle: 'Taguer depuis SoundCloud',
-                tagDesc: 'Complète l\'artiste, le genre et la pochette manquants à partir du nom du fichier.',
+                tagDesc: 'Complète l\'artiste, le genre et la pochette manquants à partir du titre ou du nom du fichier.',
                 convert: 'Convertir',
                 converting: 'Conversion…',
-                needSource: 'Choisissez un dossier source ou un fichier ZIP.',
+                tagAction: 'Taguer',
+                tagging: 'Recherche des tags…',
+                cancel: 'Annuler',
+                cancelling: 'Annulation…',
+                needSource: 'Choisissez un dossier source, un fichier ZIP ou un fichier audio.',
+                needSourceTag: 'Choisissez un dossier de MP3 ou un fichier MP3.',
                 needDest: 'Choisissez une destination, ou activez « Créer un nouveau dossier ».',
                 starting: 'Démarrage…',
                 stopped: 'Arrêté',
+                cancelled: 'Annulé',
                 done: 'Terminé',
                 doneFailed: p => `Terminé, ${p.n} ${p.n === 1 ? 'échec' : 'échecs'}`,
                 progress: p => `${p.current} sur ${p.total}`,
                 found: p => p.n === 1 ? '1 fichier trouvé' : `${p.n} fichiers trouvés`,
-                converted: p => `✓ ${p.file}`,
-                convert_failed: p => `✗ Échec de la conversion de ${p.file}`,
+                converted: p => `✓ ${p.file}` + (p.renamed ? ` → ${p.renamed}` : ''),
+                convert_failed: p => `✗ Échec de la conversion de ${p.file}` + (p.detail ? ` : ${p.detail}` : ''),
+                failed: p => `✗ Échec : ${p.detail}`,
+                cancelledLine: 'Annulé par l\'utilisateur.',
                 tagLine: p => `   Tags : ${p.text}`,
                 tagFailed: p => `   Échec du tag : ${p.detail}`,
                 tag_already: 'artiste, genre et pochette déjà présents',
                 tag_no_results: 'aucun résultat sur SoundCloud',
+                tag_no_match: 'aucun résultat SoundCloud assez proche du titre',
                 tag_nothing: 'aucune donnée manquante trouvée',
-                tag_added: p => `ajout : ${p.list}`,
+                tag_added: p => `ajout : ${p.list} (d'après « ${p.match} »)`,
                 field_artist: 'Artiste',
                 field_genre: 'Genre',
                 field_artwork: 'Pochette',
+                statConverted: 'Convertis',
+                statFailed: 'Échecs',
+                statTagged: 'Tagués',
+                statUnchanged: 'Inchangés',
+                openFolder: 'Ouvrir le dossier',
+                retryFailed: 'Réessayer les échecs',
                 connection_lost: p => `Connexion à l'application perdue : ${p.detail}`,
                 extracting: 'Extraction de l\'archive ZIP…',
-                input_invalid: 'La source doit être un dossier ou un fichier ZIP existant.',
+                input_invalid: 'La source doit être un dossier, un fichier ZIP ou un fichier audio existant.',
+                tag_input_invalid: 'La source doit être un dossier ou un fichier MP3 existant.',
                 output_missing: 'Veuillez indiquer un dossier de sortie.',
                 output_create_failed: p => `Impossible de créer le dossier de sortie : ${p.detail}`,
                 output_not_found: 'Le dossier de sortie n\'existe pas.',
                 output_is_file: 'Le chemin de sortie est un fichier, pas un dossier.',
-                zip_failed: p => `Impossible d'extraire le ZIP : ${p.detail}`,
-                no_audio: 'Aucun fichier FLAC ou WAV trouvé dans la source.',
+                zip_failed: p => `Impossible de lire la source : ${p.detail}`,
+                no_audio: 'Aucun fichier audio trouvé dans la source.',
+                no_mp3: 'Aucun fichier MP3 trouvé dans la source.',
                 ffmpeg_missing: 'FFmpeg est introuvable. Vérifiez qu\'il est installé et présent dans le PATH de Windows.'
             },
             en: {
                 pageTitle: 'MP3 Converter',
                 heading: 'MP3 <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent">Converter</span>',
-                subtitle: 'Convert FLAC and WAV files to 320 kbps MP3.',
+                subtitle: 'Convert audio files (FLAC, WAV, M4A, OGG…) to 320 kbps MP3.',
                 themeTitle: 'Switch between light and dark mode',
                 langTitle: 'Language',
+                modeConvert: 'Convert',
+                modeTag: 'Tag only',
                 source: 'Source',
-                sourcePlaceholder: 'Folder or ZIP file',
+                sourcePlaceholder: 'Folder, ZIP file or audio file',
+                sourcePlaceholderTag: 'Folder of MP3s or MP3 file',
                 folder: 'Folder',
+                file: 'File',
+                dropHint: 'You can also drag and drop a folder or file onto the window.',
+                dropHere: 'Drop to choose the source',
+                dropUnsupported: 'Drag and drop only works in the app window, not in a browser.',
                 destination: 'Destination',
                 destPlaceholder: 'Output folder',
                 destPlaceholderAuto: 'Optional: next to the source by default',
@@ -216,37 +284,54 @@
                 createTitle: 'Create a new folder',
                 createDesc: 'Named after the source with <span class="font-mono">_mp3</span> added. Placed in the destination, or next to the source if no destination is set.',
                 tagTitle: 'Tag from SoundCloud',
-                tagDesc: 'Fills in missing artist, genre and artwork using the file name.',
+                tagDesc: 'Fills in missing artist, genre and artwork using the title or file name.',
                 convert: 'Convert',
                 converting: 'Converting…',
-                needSource: 'Choose a source folder or ZIP file.',
+                tagAction: 'Tag',
+                tagging: 'Looking up tags…',
+                cancel: 'Cancel',
+                cancelling: 'Cancelling…',
+                needSource: 'Choose a source folder, ZIP file or audio file.',
+                needSourceTag: 'Choose a folder of MP3s or an MP3 file.',
                 needDest: 'Choose a destination, or turn on "Create a new folder".',
                 starting: 'Starting…',
                 stopped: 'Stopped',
+                cancelled: 'Cancelled',
                 done: 'Done',
                 doneFailed: p => `Done, ${p.n} failed`,
                 progress: p => `${p.current} of ${p.total}`,
                 found: p => `Found ${p.n} ${p.n === 1 ? 'file' : 'files'}`,
-                converted: p => `✓ ${p.file}`,
-                convert_failed: p => `✗ Failed to convert ${p.file}`,
+                converted: p => `✓ ${p.file}` + (p.renamed ? ` → ${p.renamed}` : ''),
+                convert_failed: p => `✗ Failed to convert ${p.file}` + (p.detail ? `: ${p.detail}` : ''),
+                failed: p => `✗ Failed: ${p.detail}`,
+                cancelledLine: 'Cancelled by the user.',
                 tagLine: p => `   Tags: ${p.text}`,
                 tagFailed: p => `   Tagging failed: ${p.detail}`,
                 tag_already: 'already has artist, genre and artwork',
                 tag_no_results: 'no results found on SoundCloud',
+                tag_no_match: 'no SoundCloud result was close enough to the title',
                 tag_nothing: 'no missing data could be found',
-                tag_added: p => `added ${p.list}`,
+                tag_added: p => `added ${p.list} (from "${p.match}")`,
                 field_artist: 'Artist',
                 field_genre: 'Genre',
                 field_artwork: 'Artwork',
+                statConverted: 'Converted',
+                statFailed: 'Failed',
+                statTagged: 'Tagged',
+                statUnchanged: 'Unchanged',
+                openFolder: 'Open folder',
+                retryFailed: 'Retry failed',
                 connection_lost: p => `Lost connection to the app: ${p.detail}`,
                 extracting: 'Extracting ZIP archive…',
-                input_invalid: 'Source must be an existing folder or ZIP file.',
+                input_invalid: 'Source must be an existing folder, ZIP file or audio file.',
+                tag_input_invalid: 'Source must be an existing folder or MP3 file.',
                 output_missing: 'Please specify an output folder.',
                 output_create_failed: p => `Failed to create output folder: ${p.detail}`,
                 output_not_found: 'Output folder does not exist.',
                 output_is_file: 'Output path is a file, not a folder.',
-                zip_failed: p => `Failed to extract ZIP: ${p.detail}`,
-                no_audio: 'No FLAC or WAV files found in the source.',
+                zip_failed: p => `Failed to read the source: ${p.detail}`,
+                no_audio: 'No audio files found in the source.',
+                no_mp3: 'No MP3 files found in the source.',
                 ffmpeg_missing: 'FFmpeg not found. Ensure it is installed and in your Windows PATH.'
             }
         };
@@ -261,13 +346,16 @@
             return typeof entry === 'function' ? entry(params) : entry;
         }
 
+        // 'convert' or 'tag' (tag existing MP3s without converting)
+        let mode = 'convert';
         // Everything shown after page load is kept as a key + params so it can be re-rendered on language change
-        let failedCount = 0;
         let stopped = false;
         let running = false;
         let logEntries = [];
         let progressState = { key: 'starting', params: {} };
         let formErrorKey = '';
+        // The run in progress (or the last one): what was asked, and what came of it
+        let run = null;
 
         function setLang(newLang) {
             lang = newLang;
@@ -280,24 +368,49 @@
             document.title = t('pageTitle');
             document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
             document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
             document.querySelectorAll('[data-i18n-title]').forEach(el => {
                 el.title = t(el.dataset.i18nTitle);
                 el.setAttribute('aria-label', el.title);
             });
-            document.querySelectorAll('[data-lang]').forEach(btn => {
-                const active = btn.dataset.lang === lang;
-                btn.setAttribute('aria-pressed', active);
-                btn.classList.toggle('bg-zinc-900', active);
-                btn.classList.toggle('text-white', active);
-                btn.classList.toggle('dark:bg-white', active);
-                btn.classList.toggle('dark:text-zinc-950', active);
-            });
-            document.getElementById('startBtn').innerText = t(running ? 'converting' : 'convert');
+            document.querySelectorAll('[data-lang]').forEach(btn => setActive(btn, btn.dataset.lang === lang));
             document.getElementById('progressText').innerText = t(progressState.key, progressState.params);
             showFormError(formErrorKey);
-            syncOutputDir();
+            applyMode();
             renderLog();
+            renderSummary();
+        }
+
+        function setActive(btn, active) {
+            btn.setAttribute(btn.getAttribute('role') === 'tab' ? 'aria-selected' : 'aria-pressed', active);
+            btn.classList.toggle('bg-zinc-900', active);
+            btn.classList.toggle('text-white', active);
+            btn.classList.toggle('dark:bg-white', active);
+            btn.classList.toggle('dark:text-zinc-950', active);
+        }
+
+        function setMode(newMode) {
+            if (running) return;
+            mode = newMode;
+            showFormError('');
+            applyMode();
+        }
+
+        function applyMode() {
+            const tagMode = mode === 'tag';
+            document.querySelectorAll('[data-mode]').forEach(btn => {
+                setActive(btn, btn.dataset.mode === mode);
+                btn.disabled = running;
+            });
+            document.querySelectorAll('[data-convert-only]').forEach(el => el.classList.toggle('hidden', tagMode));
+            document.getElementById('inputDir').placeholder = t(tagMode ? 'sourcePlaceholderTag' : 'sourcePlaceholder');
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = running;
+            if (running) startBtn.innerText = t(run.mode === 'tag' ? 'tagging' : 'converting');
+            else startBtn.innerText = t(tagMode ? 'tagAction' : 'convert');
+            const cancelBtn = document.getElementById('cancelBtn');
+            cancelBtn.classList.toggle('hidden', !running);
+            cancelBtn.innerText = t(cancelBtn.disabled ? 'cancelling' : 'cancel');
+            syncOutputDir();
         }
 
         function toggleTheme() {
@@ -322,7 +435,9 @@
         function syncOutputDir() {
             const auto = document.getElementById('createFolder').checked;
             const preview = document.getElementById('outputPreview');
-            const inputDir = document.getElementById('inputDir').value.trim().replace(/[\\/]+$/, '').replace(/\.zip$/i, '');
+            let inputDir = document.getElementById('inputDir').value.trim().replace(/[\\/]+$/, '');
+            const extension = SOURCE_EXTENSIONS.find(ext => inputDir.toLowerCase().endsWith(ext));
+            if (extension) inputDir = inputDir.slice(0, -extension.length);
             const outputDir = document.getElementById('outputDir').value.trim().replace(/[\\/]+$/, '');
             document.getElementById('outputDir').placeholder = t(auto ? 'destPlaceholderAuto' : 'destPlaceholder');
             preview.classList.toggle('hidden', !auto || !inputDir);
@@ -334,10 +449,35 @@
         document.getElementById('inputDir').addEventListener('input', syncOutputDir);
         document.getElementById('outputDir').addEventListener('input', syncOutputDir);
 
+        // Drag and drop. A page can't read the path of a dropped file, so the app window reports it through onDropPath()
+        const dropOverlay = document.getElementById('dropOverlay');
+        const draggingFiles = e => e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files');
+        window.addEventListener('dragover', e => {
+            if (!draggingFiles(e)) return;
+            e.preventDefault();
+            dropOverlay.classList.toggle('hidden', running);
+        }, true);
+        window.addEventListener('dragleave', e => {
+            if (!e.relatedTarget) dropOverlay.classList.add('hidden');
+        }, true);
+        window.addEventListener('drop', e => {
+            if (!draggingFiles(e)) return;
+            e.preventDefault();
+            dropOverlay.classList.add('hidden');
+            if (!window.pywebview && !running) showFormError('dropUnsupported');
+        }, true);
+
+        function onDropPath(path) {
+            if (running) return;
+            document.getElementById('inputDir').value = path;
+            showFormError('');
+            syncOutputDir();
+        }
+
         function tagText(tag) {
             if (tag.code !== 'added') return t('tag_' + tag.code);
             const list = tag.added.map(([field, value]) => t('field_' + field) + (value ? ` (${value})` : '')).join(', ');
-            return t('tag_added', { list });
+            return t('tag_added', { list, match: tag.match });
         }
 
         function logText(entry) {
@@ -383,45 +523,99 @@
             progressBar.classList.add(color);
         }
 
-        async function startConversion() {
-            const inputDir = document.getElementById('inputDir').value.trim();
-            const outputDir = document.getElementById('outputDir').value.trim();
-            const createFolder = document.getElementById('createFolder').checked;
-            const startBtn = document.getElementById('startBtn');
+        // Counts shown once a run has ended, with the actions that make sense for them
+        function renderSummary() {
+            const summary = document.getElementById('summary');
+            const finished = run && run.finished;
+            summary.classList.toggle('hidden', !finished);
+            if (!finished) return;
 
-            if (!inputDir) {
-                showFormError('needSource');
-                return;
+            const stats = run.mode === 'tag'
+                ? [['statTagged', run.tagged, 'text-emerald-700 dark:text-emerald-400'], ['statUnchanged', run.ok - run.tagged], ['statFailed', run.failed.length, 'text-amber-700 dark:text-amber-400']]
+                : [['statConverted', run.ok, 'text-emerald-700 dark:text-emerald-400'], ['statFailed', run.failed.length, 'text-amber-700 dark:text-amber-400']];
+            if (run.mode === 'convert' && run.body.tag) stats.push(['statTagged', run.tagged]);
+
+            const statsEl = document.getElementById('summaryStats');
+            statsEl.innerHTML = '';
+            for (const [key, value, color] of stats) {
+                const tile = document.createElement('div');
+                tile.className = 'rounded-xl border border-zinc-300 dark:border-zinc-700 bg-slate-50 dark:bg-black px-3 py-2.5';
+                const number = document.createElement('div');
+                number.className = 'text-2xl font-bold tabular-nums ' + (value && color ? color : '');
+                number.textContent = value;
+                const label = document.createElement('div');
+                label.className = 'text-xs font-medium text-zinc-600 dark:text-zinc-300';
+                label.textContent = t(key);
+                tile.append(number, label);
+                statsEl.appendChild(tile);
             }
-            if (!outputDir && !createFolder) {
-                showFormError('needDest');
-                return;
+            document.getElementById('openBtn').classList.toggle('hidden', !run.outputDir);
+            document.getElementById('retryBtn').classList.toggle('hidden', !run.failed.length);
+        }
+
+        function openOutput() {
+            fetch('/open', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: run.outputDir }) });
+        }
+
+        function retryFailed() {
+            startRun({ ...run.body, only: run.failed }, run.mode);
+        }
+
+        function cancelRun() {
+            const cancelBtn = document.getElementById('cancelBtn');
+            cancelBtn.disabled = true;
+            cancelBtn.innerText = t('cancelling');
+            fetch('/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ job: run.body.job }) });
+        }
+
+        // retryBody / retryMode: run these again instead of reading the form
+        async function startRun(retryBody, retryMode) {
+            if (running) return;
+            let body = retryBody;
+            const runMode = retryMode || mode;
+            if (!body) {
+                const inputDir = document.getElementById('inputDir').value.trim();
+                const outputDir = document.getElementById('outputDir').value.trim();
+                const createFolder = document.getElementById('createFolder').checked;
+
+                if (!inputDir) {
+                    showFormError(runMode === 'tag' ? 'needSourceTag' : 'needSource');
+                    return;
+                }
+                if (runMode === 'convert' && !outputDir && !createFolder) {
+                    showFormError('needDest');
+                    return;
+                }
+                body = runMode === 'tag' ? { input_dir: inputDir } : {
+                    input_dir: inputDir,
+                    output_dir: outputDir,
+                    create_folder: createFolder,
+                    tag: document.getElementById('tagFiles').checked
+                };
             }
             showFormError('');
 
-            failedCount = 0;
+            // The id lets the Cancel button name this run to the app
+            body = { ...body, job: Date.now().toString(36) + Math.random().toString(36).slice(2) };
+            run = { mode: runMode, body, ok: 0, tagged: 0, failed: [], outputDir: '', finished: false };
             stopped = false;
             running = true;
             logEntries = [];
-            startBtn.disabled = true;
-            startBtn.innerText = t('converting');
+            document.getElementById('cancelBtn').disabled = false;
             document.getElementById('progressSection').classList.remove('hidden');
             document.getElementById('logArea').innerHTML = '';
             document.getElementById('progressBar').style.width = '0%';
             document.getElementById('progressPercent').innerText = '0%';
             setProgress('starting');
             setBarColor('bg-indigo-500');
+            applyMode();
+            renderSummary();
 
             try {
-                const response = await fetch('/convert', {
+                const response = await fetch(runMode === 'tag' ? '/tag' : '/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        input_dir: inputDir,
-                        output_dir: outputDir,
-                        create_folder: createFolder,
-                        tag: document.getElementById('tagFiles').checked
-                    })
+                    body: JSON.stringify(body)
                 });
 
                 const reader = response.body.getReader();
@@ -447,8 +641,8 @@
                 handleStreamData({ status: 'error', code: 'connection_lost', detail: error.message });
             } finally {
                 running = false;
-                startBtn.disabled = false;
-                startBtn.innerText = t('convert');
+                applyMode();
+                renderSummary();
             }
         }
 
@@ -465,6 +659,7 @@
                 setProgress(data.code, data);
                 log(data.code, data);
             } else if (data.status === 'start') {
+                run.outputDir = data.output_dir;
                 log('found', { n: data.total });
             } else if (data.status === 'progress') {
                 const percent = Math.round((data.current / data.total) * 100);
@@ -472,15 +667,25 @@
                 progressPercent.innerText = `${percent}%`;
                 setProgress('progress', { current: data.current, total: data.total });
             } else if (data.status === 'success') {
-                log('converted', { file: data.file }, 'text-zinc-950 dark:text-white font-medium');
-                if (data.tag) log('tagLine', { tag: data.tag }, 'text-zinc-600 dark:text-zinc-400 whitespace-pre');
-                if (data.tag_error) log('tagFailed', { detail: data.tag_error }, 'text-amber-700 dark:text-amber-400 whitespace-pre');
+                log('converted', { file: data.file, renamed: data.renamed }, 'text-zinc-950 dark:text-white font-medium');
+                if (data.tag) log('tagLine', { tag: data.tag }, 'text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap');
+                if (data.tag_error) log('tagFailed', { detail: data.tag_error }, 'text-amber-700 dark:text-amber-400 whitespace-pre-wrap');
+                // When only tagging, a file whose lookup failed is a failed file
+                if (run.mode === 'tag' && data.tag_error) run.failed.push(data.id);
+                else run.ok++;
+                if (data.tag && data.tag.code === 'added') run.tagged++;
             } else if (data.status === 'warning') {
-                failedCount++;
+                if (data.id) run.failed.push(data.id);
                 log(data.code, data, 'text-amber-700 dark:text-amber-400');
+            } else if (data.status === 'cancelled') {
+                run.finished = true;
+                setProgress('cancelled');
+                setBarColor('bg-amber-500');
+                log('cancelledLine', {}, 'text-amber-700 dark:text-amber-400');
             } else if (data.status === 'done' && !stopped) {
-                if (failedCount) {
-                    setProgress('doneFailed', { n: failedCount });
+                run.finished = true;
+                if (run.failed.length) {
+                    setProgress('doneFailed', { n: run.failed.length });
                     setBarColor('bg-amber-500');
                 } else {
                     setProgress('done');

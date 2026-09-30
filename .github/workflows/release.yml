@@ -36,7 +36,7 @@ jobs:
           Copy-Item "ffmpeg-dl/$name/LICENSE" FFmpeg-LICENSE.txt
 
       - name: Build exe
-        run: pyinstaller --noconfirm --onefile --name MP3Converter --add-data "templates;templates" --add-binary "ffmpeg.exe;." app.py
+        run: pyinstaller --noconfirm --onefile --windowed --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
 
       - name: Smoke test
         shell: pwsh
@@ -68,7 +68,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $notes = @"
-          Download **MP3Converter.exe** and double-click it. Close its console window to quit.
+          Download **MP3Converter.exe** and double-click it. Close its window to quit.
 
           Windows may show a SmartScreen warning because the app is unsigned: click **More info**, then **Run anyway**.
 

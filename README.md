@@ -1,6 +1,6 @@
 # Convertisseur MP3
 
-Une petite application Windows qui convertit les fichiers FLAC et WAV en MP3 320 kbps, et peut compléter l'artiste, le genre et la pochette manquants depuis SoundCloud. Elle tourne sur votre propre machine et s'ouvre dans votre navigateur ; vos fichiers ne sont envoyés sur aucun serveur.
+Une petite application Windows qui convertit les fichiers audio (FLAC, WAV, M4A, OGG, WMA…) en MP3 320 kbps, et peut compléter l'artiste, le genre et la pochette manquants depuis SoundCloud. Elle tourne sur votre propre machine, dans sa propre fenêtre ; vos fichiers ne sont envoyés sur aucun serveur.
 
 ## Téléchargement
 
@@ -11,26 +11,33 @@ Il n'y a rien à installer. FFmpeg est inclus dans le `.exe`.
 
 ## Utilisation
 
-1. Double-cliquez sur `MP3Converter.exe`. Une fenêtre de console apparaît et, après quelques secondes, l'application s'ouvre dans votre navigateur à l'adresse http://127.0.0.1:5000.
-2. Choisissez une **Source** : cliquez sur **Dossier** pour sélectionner un dossier de fichiers FLAC/WAV, ou sur **ZIP** pour sélectionner une archive ZIP. Vous pouvez aussi coller un chemin.
+1. Double-cliquez sur `MP3Converter.exe`. Après quelques secondes, la fenêtre de l'application s'ouvre.
+2. Choisissez une **Source** : cliquez sur **Dossier** pour sélectionner un dossier de fichiers audio, ou sur **Fichier** pour sélectionner une archive ZIP ou un seul fichier audio. Vous pouvez aussi coller un chemin, ou glisser-déposer le dossier ou le fichier dans la fenêtre.
 3. Choisissez un dossier de **Destination**, ou activez **Créer un nouveau dossier** (voir ci-dessous).
-4. Cliquez sur **Convertir**. La progression et un journal fichier par fichier s'affichent sous le formulaire.
-5. Pour quitter, fermez la fenêtre de console.
+4. Cliquez sur **Convertir**. La progression et un journal fichier par fichier s'affichent sous le formulaire. **Annuler** arrête la conversion en cours ; les fichiers déjà convertis sont conservés.
+5. À la fin, un récapitulatif indique le nombre de fichiers convertis, en échec et tagués. **Ouvrir le dossier** affiche les MP3 dans l'Explorateur, et **Réessayer les échecs** relance uniquement les fichiers qui ont échoué.
+6. Pour quitter, fermez la fenêtre.
+
+L'onglet **Taguer seulement** complète les tags de MP3 existants (un dossier ou un seul fichier) sans rien convertir.
 
 Windows peut afficher un avertissement SmartScreen au premier lancement, car l'application n'est pas signée. Cliquez sur **Informations complémentaires**, puis sur **Exécuter quand même**.
 
 ### Options
 
 - **Créer un nouveau dossier** : enregistre les MP3 dans un nouveau dossier portant le nom de la source suivi de `_mp3` (`Album` ou `Album.zip` devient `Album_mp3`). Il est créé dans la destination, ou à côté de la source si la destination est laissée vide.
-- **Taguer depuis SoundCloud** : recherche chaque nom de fichier sur SoundCloud et complète l'artiste, le genre et la pochette lorsqu'ils sont absents. Les tags existants ne sont jamais écrasés. Le premier résultat de recherche est utilisé : un fichier au nom vague peut donc recevoir de mauvais tags.
+- **Taguer depuis SoundCloud** : recherche chaque morceau sur SoundCloud et complète l'artiste, le genre et la pochette lorsqu'ils sont absents. Les tags existants ne sont jamais écrasés. La recherche utilise le titre déjà présent dans le fichier, ou à défaut le nom du fichier débarrassé des numéros de piste (`01 - `) et des mentions comme `[FREE DL]`. Les cinq premiers résultats sont comparés au morceau et le plus proche est retenu ; si aucun n'est assez proche, le fichier n'est pas tagué. Un titre très court ou très courant peut malgré tout recevoir les tags d'un autre morceau du même nom.
 
 ### Bon à savoir
 
-- Avec un dossier comme source, seuls les fichiers placés directement dedans sont lus, pas ceux des sous-dossiers. Avec un ZIP, tous les fichiers FLAC/WAV sont pris, quelle que soit leur profondeur, et écrits dans un seul dossier de sortie.
+- Formats acceptés : FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack, et les autres formats audio que FFmpeg sait lire.
+- Avec un dossier comme source, seuls les fichiers placés directement dedans sont lus, pas ceux des sous-dossiers. Avec un ZIP, tous les fichiers audio sont pris, quelle que soit leur profondeur, et écrits dans un seul dossier de sortie.
+- Quand deux fichiers donneraient le même MP3 (`CD1/01.flac` et `CD2/01.flac`, ou `titre.flac` et `titre.wav`), les suivants reçoivent un numéro : `01.mp3`, `01_2.mp3`, `01_3.mp3`.
+- Quand une conversion échoue, le journal indique la raison donnée par FFmpeg.
 - Les MP3 du même nom déjà présents dans le dossier de sortie sont écrasés.
-- Les tags et la pochette déjà présents dans un fichier FLAC sont conservés dans le MP3.
+- Les tags et la pochette déjà présents dans le fichier d'origine sont conservés dans le MP3.
 - Les fichiers sont convertis en parallèle, un par cœur de processeur.
-- Une connexion Internet est nécessaire pour la mise en forme de la page et pour les tags SoundCloud. La conversion elle-même fonctionne hors ligne.
+- Seuls les tags SoundCloud nécessitent une connexion Internet. Tout le reste fonctionne hors ligne.
+- La fenêtre utilise le composant Microsoft Edge WebView2, présent sur Windows 11 et sur les Windows 10 à jour. S'il est absent, l'application s'ouvre dans votre navigateur, avec une petite boîte de dialogue pour quitter.
 - Les boutons **FR** / **EN** en haut à droite changent la langue de l'interface (français par défaut). Le bouton soleil/lune bascule entre le mode clair et le mode sombre. Les deux choix sont mémorisés.
 
 ## Lancer depuis les sources
@@ -40,6 +47,12 @@ Nécessite Python 3.12 et [FFmpeg](https://ffmpeg.org/download.html) dans votre 
 ```bash
 pip install -r requirements.txt
 python app.py
+```
+
+L'application s'ouvre dans sa fenêtre. Pour la servir plutôt dans un navigateur, avec le rechargement automatique de Flask (le glisser-déposer n'y fonctionne pas) :
+
+```bash
+python app.py --browser
 ```
 
 Ouvrez ensuite http://127.0.0.1:5000.
@@ -63,11 +76,11 @@ Pour le générer en local, placez un `ffmpeg.exe` dans le dossier du projet et 
 
 ```bash
 pip install pyinstaller
-pyinstaller --noconfirm --onefile --name MP3Converter --add-data "templates;templates" --add-binary "ffmpeg.exe;." app.py
+pyinstaller --noconfirm --onefile --windowed --name MP3Converter --add-data "templates;templates" --add-data "static;static" --add-binary "ffmpeg.exe;." app.py
 ```
 
 Le résultat est `dist/MP3Converter.exe`.
 
 ## Crédits
 
-La conversion utilise [FFmpeg](https://ffmpeg.org), inclus dans le `.exe` sous licence GPL. Les recherches SoundCloud utilisent [yt-dlp](https://github.com/yt-dlp/yt-dlp) ; les tags sont écrits avec [mutagen](https://mutagen.readthedocs.io).
+La conversion utilise [FFmpeg](https://ffmpeg.org), inclus dans le `.exe` sous licence GPL. Les recherches SoundCloud utilisent [yt-dlp](https://github.com/yt-dlp/yt-dlp) ; les tags sont écrits avec [mutagen](https://mutagen.readthedocs.io). La fenêtre est fournie par [pywebview](https://pywebview.flowrl.com) et la mise en forme par [Tailwind CSS](https://tailwindcss.com), dont une copie est incluse dans `static/`.
