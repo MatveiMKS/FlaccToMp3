@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D'Antra au MP3 : le guide</title>
+<meta name="description" content="Présentation d'Antra et mode d'emploi de Convertisseur MP3 pour transformer une archive téléchargée en MP3 320 kbps.">
+<style>
+  :root {
+    --bg: #f6f5fb;
+    --surface: #ffffff;
+    --surface-2: #efedf8;
+    --text: #17152a;
+    --muted: #5d5a75;
+    --border: #dcd9ec;
+    --accent: #5b4fe6;
+    --accent-2: #b03fd6;
+    --accent-soft: #ebe8ff;
+    --warn-bg: #fff6e0;
+    --warn-border: #e9c46a;
+    --shadow: 0 10px 30px rgba(40, 30, 110, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0a14;
+      --surface: #16151f;
+      --surface-2: #1e1c2c;
+      --text: #f1f0fa;
+      --muted: #a6a3bf;
+      --border: #2c2a3f;
+      --accent: #8f86ff;
+      --accent-2: #d06cf0;
+      --accent-soft: #24213f;
+      --warn-bg: #2a2413;
+      --warn-border: #7a6524;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 56px; }
+  nav .brand { font-weight: 700; margin-right: auto; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  nav a:hover { color: var(--text); }
+
+  .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header { padding: 80px 0 56px; text-align: center; }
+  h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; margin: 0 0 18px; letter-spacing: -.02em; text-wrap: balance; }
+  header p { max-width: 640px; margin: 0 auto 30px; color: var(--muted); font-size: 19px; text-wrap: pretty; }
+  .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 12px;
+    font-weight: 600; text-decoration: none; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+  }
+  .btn.primary {
+    border: 0; color: #fff;
+    background: linear-gradient(90deg, #5b4fe6, #b03fd6);
+  }
+  .btn:hover { filter: brightness(1.08); }
+
+  .flow {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+    gap: 10px; margin-top: 44px; color: var(--muted); font-size: 15px;
+  }
+  .flow span.chip {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 7px 14px; border-radius: 999px; color: var(--text);
+  }
+
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  .eyebrow { color: var(--accent); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+  h2 { font-size: clamp(26px, 4vw, 36px); line-height: 1.2; margin: 6px 0 14px; letter-spacing: -.01em; }
+  h3 { font-size: 19px; margin: 0 0 6px; }
+  .lead { color: var(--muted); max-width: 720px; margin: 0 0 28px; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+  }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .card.featured { border-color: var(--accent); }
+  ul.plan { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: 15.5px; }
+  ul.plan li { margin-bottom: 6px; }
+  ul.plan strong { color: var(--text); }
+
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 12px; }
+  ol.steps li {
+    counter-increment: s; position: relative;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px 20px 18px 68px;
+  }
+  ol.steps li::before {
+    content: counter(s);
+    position: absolute; left: 18px; top: 18px;
+    width: 34px; height: 34px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #5b4fe6, #b03fd6); color: #fff; font-weight: 700;
+  }
+  ol.steps p { margin: 0; color: var(--muted); }
+  ol.steps strong { color: var(--text); }
+
+  .split { display: grid; gap: 36px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  .split img {
+    width: 100%; height: auto; display: block;
+    border-radius: 18px; border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .shot { position: sticky; top: 76px; }
+  @media (max-width: 800px) {
+    .split { grid-template-columns: 1fr; }
+    .shot { position: static; max-width: 420px; margin: 0 auto; }
+    nav a.hide-s { display: none; }
+  }
+
+  .note {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 14px; padding: 16px 18px; margin-top: 18px; font-size: 15.5px;
+  }
+  .note p { margin: 0; }
+  .note ul { margin: 8px 0 0; padding-left: 20px; }
+  .tip {
+    background: var(--accent-soft); border-radius: 14px;
+    padding: 16px 18px; margin-top: 18px; font-size: 15.5px;
+  }
+  .tip p { margin: 0; }
+  code {
+    font: 14px ui-monospace, Consolas, monospace;
+    background: var(--surface-2); padding: 2px 6px; border-radius: 6px;
+    overflow-wrap: anywhere;
+  }
+  details {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 18px; margin-bottom: 10px;
+  }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { margin: 10px 0 0; color: var(--muted); }
+
+  footer { padding: 36px 0 56px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14.5px; }
+  footer p { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">Antra <span class="grad">→ MP3</span></span>
+    <a href="#antra">Antra</a>
+    <a href="#archive" class="hide-s">Récupérer l'archive</a>
+    <a href="#limites" class="hide-s">Limites</a>
+    <a href="#convertir">Convertir</a>
+    <a href="#faq" class="hide-s">Questions</a>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <h1>Du lien de streaming<br>au <span class="grad">MP3 prêt à écouter</span></h1>
+    <p>Antra récupère votre musique en qualité sans perte. Convertisseur MP3 transforme ensuite l'archive téléchargée en MP3 320&nbsp;kbps lisibles partout, avec artiste, genre et pochette.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/MatveiMKS/FlaccToMp3/releases/latest">Télécharger Convertisseur MP3</a>
+      <a class="btn" href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">Ouvrir Antra</a>
+    </div>
+    <div class="flow">
+      <span class="chip">Lien collé dans Antra</span> →
+      <span class="chip">Archive ZIP de FLAC</span> →
+      <span class="chip">Convertisseur MP3</span> →
+      <span class="chip">Dossier de MP3</span>
+    </div>
+  </div>
+</header>
+
+<section id="antra">
+  <div class="wrap">
+    <div class="eyebrow">Première partie</div>
+    <h2>Antra, c'est quoi&nbsp;?</h2>
+    <p class="lead"><a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">Antra</a> est un site web gratuit. Vous y collez le lien d'un morceau ou d'un album, il retrouve la source de meilleure qualité disponible et vous remet le fichier audio. Il n'y a rien à installer.</p>
+
+    <div class="grid">
+      <div class="card"><h3>Un lien suffit</h3><p>Antra accepte les liens de six plateformes et cherche la meilleure version parmi elles.</p></div>
+      <div class="card"><h3>Sans perte par défaut</h3><p>Le fichier est livré en FLAC, jusqu'à 24 bits / 192 kHz, soit une qualité égale ou supérieure au CD.</p></div>
+      <div class="card"><h3>D'autres formats au choix</h3><p>ALAC pour l'écosystème Apple, ou des formats compressés&nbsp;: AAC 256 kbps et MP3 320 kbps.</p></div>
+    </div>
+
+    <div class="tip">
+      <p><strong>Pourquoi convertir ensuite&nbsp;?</strong> Un album en FLAC Hi-Res pèse souvent plus d'un gigaoctet, et tous les autoradios, enceintes ou logiciels de DJ ne le lisent pas. Un MP3 320&nbsp;kbps est environ cinq à dix fois plus léger et fonctionne partout.</p>
+    </div>
+  </div>
+</section>
+
+<section id="archive">
+  <div class="wrap">
+    <div class="eyebrow">Deuxième partie</div>
+    <h2>Récupérer une archive sur Antra</h2>
+    <p class="lead">Quelques clics dans le navigateur suffisent.</p>
+    <ol class="steps">
+      <li><p><strong>Copiez le lien</strong> de la playlist ou du morceau depuis Spotify, Apple Music, Amazon Music, Tidal, Qobuz ou Deezer (menu <em>Partager</em> → <em>Copier le lien</em>).</p></li>
+      <li><p><strong>Ouvrez <a href="https://antra.hoshi.cfd/" target="_blank" rel="noopener">antra.hoshi.cfd</a></strong> , cliquez sur <strong>Enter</strong>, puis connectez-vous (<strong>Log in</strong>) ou créez un compte gratuit (<strong>Sign up</strong>).</p></li>
+      <li><p><strong>Collez le lien</strong> et validez. Antra affiche la liste des pistes et la qualité trouvée pour chacune.</p></li>
+      <li><p><strong>Gardez le format FLAC</strong> et lancez le téléchargement. Convertisseur MP3 se charge de la conversion, inutile de choisir MP3 ici.</p></li>
+      <li><p><strong>Enregistrez l'archive</strong> <code>.zip</code> proposée par le navigateur, par exemple dans <em>Téléchargements</em>. Il n'est pas nécessaire de la décompresser.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="limites">
+  <div class="wrap">
+    <div class="eyebrow">Troisième partie</div>
+    <h2>Limites gratuites et accès supporter</h2>
+    <p class="lead">Antra est gratuit, avec un quota par jour. Un soutien sur Patreon donne une clé qui lève ces limites pendant 30 jours.</p>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Compte gratuit</h3>
+        <ul class="plan">
+          <li>Par jour&nbsp;: <strong>5 playlists</strong>, <strong>10 albums</strong> et <strong>100 morceaux</strong> à l'unité</li>
+          <li><strong>100 pistes maximum</strong> par téléchargement&nbsp;: une playlist plus longue se récupère en plusieurs archives</li>
+          <li>Un seul téléchargement à la fois, à vitesse normale</li>
+          <li>Source&nbsp;: la plateforme du lien collé, ou Amazon Music à défaut</li>
+        </ul>
+      </div>
+      <div class="card featured">
+        <h3>Clé supporter <span class="grad">30 jours</span></h3>
+        <ul class="plan">
+          <li><strong>Téléchargements illimités</strong>, sans quota journalier</li>
+          <li><strong>Vitesse doublée</strong> et accès prioritaire</li>
+          <li><strong>2 téléchargements simultanés</strong></li>
+          <li><strong>Meilleure source toutes plateformes</strong>&nbsp;: Antra cherche le meilleur master sur l'ensemble des services, pas seulement celui du lien</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin:32px 0 12px">Obtenir et activer une clé</h3>
+    <ol class="steps">
+      <li><p><strong>Soutenez Antra</strong> sur <a href="https://www.patreon.com/AntraVerse" target="_blank" rel="noopener">sa page Patreon</a>. Le paiement se fait sur Patreon, qui affiche les formules et les tarifs en vigueur.</p></li>
+      <li><p><strong>Récupérez la clé</strong> de 30 jours que vous recevez en retour.</p></li>
+      <li><p><strong>Dans Antra</strong>, cliquez sur <strong>I have a key</strong>, collez la clé puis cliquez sur <strong>Activate</strong>.</p></li>
+    </ol>
+    <div class="tip">
+      <p><strong>À savoir.</strong> La clé s'active sur le navigateur où vous la collez&nbsp;: sur un autre appareil ou un autre navigateur, il faut la saisir à nouveau.</p>
+    </div>
+  </div>
+</section>
+
+<section id="convertir">
+  <div class="wrap">
+    <div class="eyebrow">Quatrième partie</div>
+    <h2>Convertir l'archive avec Convertisseur MP3</h2>
+    <p class="lead">L'application tourne sur votre ordinateur, dans sa propre fenêtre. Vos fichiers ne sont envoyés sur aucun serveur.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="margin-bottom:12px">Installer l'application</h3>
+        <ol class="steps">
+          <li><p>Rendez-vous sur la <a href="https://github.com/MatveiMKS/FlaccToMp3/releases/latest">dernière version</a> et téléchargez le fichier de votre ordinateur&nbsp;: <code>MP3Converter.exe</code> pour Windows, <code>MP3Converter-macOS-arm64.zip</code> pour un Mac Apple Silicon, <code>MP3Converter-macOS-x86_64.zip</code> pour un Mac Intel.</p></li>
+          <li><p>Il n'y a rien à installer, FFmpeg est inclus. Sur Mac, double-cliquez sur le <code>.zip</code> pour obtenir l'application.</p></li>
+        </ol>
+
+        <div class="note">
+          <p><strong>Au premier lancement</strong>, l'application n'étant pas signée, votre système affiche un avertissement&nbsp;:</p>
+          <ul>
+            <li><strong>Navigateur&nbsp;:</strong> choisissez <strong>Conserver</strong> si le téléchargement est bloqué.</li>
+            <li><strong>Windows&nbsp;:</strong> <strong>Informations complémentaires</strong>, puis <strong>Exécuter quand même</strong>.</li>
+            <li><strong>Mac&nbsp;:</strong> <strong>Réglages Système → Confidentialité et sécurité</strong>, puis <strong>Ouvrir quand même</strong>.</li>
+          </ul>
+        </div>
+
+        <h3 style="margin:32px 0 12px">Convertir l'archive</h3>
+        <ol class="steps">
+          <li><p><strong>Lancez <code>MP3Converter</code>.</strong> La fenêtre s'ouvre après quelques secondes.</p></li>
+          <li><p><strong>Source&nbsp;:</strong> cliquez sur <strong>Fichier</strong> et sélectionnez l'archive <code>.zip</code> d'Antra, ou glissez-la simplement dans la fenêtre.</p></li>
+          <li><p><strong>Destination&nbsp;:</strong> choisissez un dossier, ou activez <strong>Créer un nouveau dossier</strong>. <code>Album.zip</code> donnera alors un dossier <code>Album_mp3</code> placé à côté de l'archive.</p></li>
+          <li><p><strong>Option&nbsp;:</strong> activez <strong>Taguer depuis SoundCloud</strong> pour compléter l'artiste, le genre et la pochette manquants. Les tags déjà présents ne sont jamais écrasés.</p></li>
+          <li><p><strong>Cliquez sur Convertir.</strong> La progression et le journal s'affichent piste par piste. <strong>Annuler</strong> arrête tout en conservant les fichiers déjà convertis.</p></li>
+          <li><p><strong>À la fin</strong>, le récapitulatif indique les fichiers convertis, en échec et tagués. <strong>Ouvrir le dossier</strong> affiche vos MP3, <strong>Réessayer les échecs</strong> relance uniquement ceux qui ont échoué.</p></li>
+        </ol>
+      </div>
+
+      <div class="shot">
+        <picture>
+          <source srcset="screenshot-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="screenshot-light.png" width="600" height="898" alt="Fenêtre de Convertisseur MP3 après la conversion de quatre fichiers FLAC, avec les tags ajoutés depuis SoundCloud">
+        </picture>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="eyebrow">Bon à savoir</div>
+    <h2>Questions fréquentes</h2>
+    <details>
+      <summary>Dois-je décompresser l'archive avant&nbsp;?</summary>
+      <p>Non. Avec un ZIP, tous les fichiers audio sont pris, quelle que soit la profondeur des dossiers, et écrits dans un seul dossier de sortie. Avec un dossier comme source, seuls les fichiers placés directement dedans sont lus.</p>
+    </details>
+    <details>
+      <summary>Quels formats sont acceptés&nbsp;?</summary>
+      <p>FLAC, WAV, AIFF, M4A/ALAC, AAC, OGG, Opus, WMA, APE, WavPack et les autres formats que FFmpeg sait lire. Les archives ALAC d'Antra fonctionnent donc aussi.</p>
+    </details>
+    <details>
+      <summary>Les tags et la pochette d'origine sont-ils conservés&nbsp;?</summary>
+      <p>Oui, ils sont recopiés dans le MP3. L'option SoundCloud ne fait que compléter ce qui manque.</p>
+    </details>
+    <details>
+      <summary>Faut-il une connexion Internet&nbsp;?</summary>
+      <p>Seulement pour les tags SoundCloud. La conversion fonctionne hors ligne.</p>
+    </details>
+    <details>
+      <summary>Que se passe-t-il si deux pistes portent le même nom&nbsp;?</summary>
+      <p>Les suivantes reçoivent un numéro&nbsp;: <code>01.mp3</code>, <code>01_2.mp3</code>, <code>01_3.mp3</code>. En revanche, les MP3 du même nom déjà présents dans le dossier de sortie sont écrasés.</p>
+    </details>
+    <details>
+      <summary>J'ai déjà des MP3, puis-je seulement les taguer&nbsp;?</summary>
+      <p>Oui, l'onglet <strong>Taguer seulement</strong> complète les tags d'un dossier ou d'un fichier MP3 sans rien convertir.</p>
+    </details>
+    <details>
+      <summary>Peut-on changer la langue ou le thème&nbsp;?</summary>
+      <p>Les boutons <strong>FR</strong> / <strong>EN</strong> en haut à droite changent la langue, et le bouton soleil/lune bascule entre mode clair et mode sombre. Les deux choix sont mémorisés.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Le code source de Convertisseur MP3 est <a href="https://github.com/MatveiMKS/FlaccToMp3">disponible sur GitHub</a>. La conversion utilise FFmpeg.</p>
+    <p>Ce site n'est pas affilié à Antra ni aux plateformes de streaming citées.</p>
+  </div>
+</footer>
+
+</body>
+</html>
